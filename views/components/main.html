@@ -1,0 +1,15 @@
+{{ define "main" }}
+<main class="w-full my-2 flex-1 flex justify-center overflow-auto">
+    <div class="max-w-[600px] md:max-w-[750px] lg:max-w-[1000px] xl:max-w-[1250px] w-full px-4 md:px-0 animate-fade-in-left">
+        {{ if eq .Page "default" }}
+        {{ template "default" . }}
+        {{ else if eq .Page "about" }}
+        {{ template "about" . }}
+        {{ else if eq .Page "projects" }}
+        {{ template "projects" . }}
+        {{ else if eq .Page "gate" }}
+        {{ template "gate" . }}
+        {{ end }}
+    </div>
+</main>
+{{ end }}

@@ -1,0 +1,21 @@
+{{ block "error" . }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Alpha</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap');
+    </style>
+    <link href="/static/output.css" rel="stylesheet">
+</head>
+<body class="w-screen h-screen overflow-hidden flex justify-center items-center">
+    <div class="max-w-[600px] md:max-w-[750px] lg:max-w-[1000px] xl:max-w-[1250px] w-full px-4 flex flex-col gap-4">
+        <h1 class="text-4xl text-wrap">{{ .Code }} {{ .Message }}</h1>
+        <h2 class="text-xl">Sorry an error happened, please try again.</h2>
+    </div>
+</body>
+</html>
+{{ end }}

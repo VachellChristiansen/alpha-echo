@@ -1,0 +1,55 @@
+{{ define "about" }}
+<div class="w-full md:h-full flex flex-col-reverse md:flex-row justify-between md:items-center">
+    <div class="w-full md:w-3/5 flex flex-col gap-4">
+        <h1 class="text-6xl">Hi! I'm Vasti.</h1>
+        <h2 class="text-4xl">A Software <span id="sw-role" class="bg-gradient-to-r from-rose-500 to-amber-500 bg-clip-text text-transparent"></span></h2>
+        <p class="">
+            Currently working at Ruparupa as a Backend Developer Intern and a third year student at Tarumanagara University.
+            Language and Frameworks I have used in the past:
+            <ul class="list-disc list-inside">
+                <li><span class="font-light">Visual Basic with .NET </span>[University Admin Dashboard]</li>
+                <li><span class="font-light">Python with Flask </span>[Chatbot With Indonesian Type Correction]</li>
+                <li><span class="font-light">Go with Echo and Gin </span>[Ruparupa's Backend Service]</li>
+                <li><span class="font-light">PHP with Laravel </span>[Satu Visi Digital Website with CMS]</li>
+                <li><span class="font-light">Javascript with Express, Vue, and Next </span>[Social Media Themed College Project]</li>
+            </ul>
+        </p>
+    </div>
+    <div class="w-full md:w-2/5 p-2 rounded-full border-2 border-stone-100">
+        <div class="p-2 rounded-full border-2 border-stone-200">
+            <img class="w-full aspect-square p-2 rounded-full border-2 border-stone-300" src="/static/images/me.jpg" alt="me">
+        </div>
+    </div>
+    <script>
+        function initializeScript() {
+            const roles = [
+                "Engineer",
+                "Developer",
+                "Geek",
+                "Enthusiast"
+            ];
+            const swRole = document.getElementById("sw-role");
+            let index = 1;
+            swRole.innerHTML = roles[0];
+
+            function swapRole() {
+                swRole.classList.add("animate-fade-out-top");
+                setTimeout(() => {
+                    swRole.classList.remove("animate-fade-out-top");
+                    swRole.innerHTML = roles[index];
+                    swRole.classList.add("animate-fade-in-bottom");
+                    
+                    setTimeout(() => {
+                        swRole.classList.remove("animate-fade-in-bottom");
+                    }, 500);
+
+                    index = index < roles.length - 1 ? index + 1 : 0;
+                }, 500);
+            }
+
+            setInterval(swapRole, 4000);
+        }
+        initializeScript();
+    </script>
+</div>
+{{ end }}
