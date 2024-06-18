@@ -4,6 +4,7 @@ import (
 	"alpha-echo/models"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -49,6 +50,7 @@ func seedModels(db *gorm.DB, logger Logger) func() {
 	return func() {
 		accessSeeder(db, logger)
 		regularSeeder(db, logger)
+		projectTagSeeder(db, logger)
 		projectSeeder(db, logger)
 	}
 }
@@ -120,12 +122,29 @@ func projectSeeder(db *gorm.DB, logger Logger) {
 		{
 			Name:        "Proximus",
 			Description: "Machine learning projects.",
-			Path:        fmt.Sprintf("%s/fl-ml/proximus", os.Getenv("ML_DOMAIN")),
+			Path:        fmt.Sprintf("%s/proximus", os.Getenv("ML_URL")),
 		},
+		{
+			Name:        "Opus",
+			Description: "Task management tool.",
+			Path:        fmt.Sprintf("%s/opus", os.Getenv("SERVER_URL")),
+		},
+	}
+	tags := []string{
+		"ML,Tools",
+		"Tools",
 	}
 
 	tx := db.Begin()
-	for _, project := range projects {
+	for index, project := range projects {
+		var tagData []models.ProjectTag
+		if err := db.Where("name IN ?", strings.Split(tags[index], ",")).Find(&tagData).Error; err != nil {
+			tx.Rollback()
+			logger["TASK"].Fatalf("[projectSeeder] Fetching Tags Failure, value: %v", tags[index])
+		}
+
+		project.ProjectTags = tagData
+
 		if err := tx.Create(&project).Error; err != nil {
 			tx.Rollback()
 			logger["TASK"].Fatalf("[projectSeeder] Seeding Failure, Value: %v", project)
@@ -134,5 +153,34 @@ func projectSeeder(db *gorm.DB, logger Logger) {
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		logger["TASK"].Fatalf("[projectSeeder] Transaction Commit Failure")
+	}
+}
+
+func projectTagSeeder(db *gorm.DB, logger Logger) {
+	projectTags := []models.ProjectTag{
+		{
+			Name:  "Tools",
+			Color: "amber",
+		},
+		{
+			Name:  "ML",
+			Color: "rose",
+		},
+		{
+			Name:  "Games",
+			Color: "emerald",
+		},
+	}
+
+	tx := db.Begin()
+	for _, projectTag := range projectTags {
+		if err := tx.Create(&projectTag).Error; err != nil {
+			tx.Rollback()
+			logger["TASK"].Fatalf("[projectTagSeeder] Seeding Failure, Value: %v", projectTag)
+		}
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		logger["TASK"].Fatalf("[projectTagSeeder] Transaction Commit Failure")
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -171,7 +172,7 @@ func (h *IndexHandlerImpl) gate(c echo.Context, req dtos.GateRequest, guest mode
 			return guest, c.Render(http.StatusInternalServerError, "error", errorData)
 		}
 
-		if err := h.db.Where("name = ?", "Regular").First(&access).Error; err != nil {
+		if err := h.db.Where("access = ?", "Regular").First(&access).Error; err != nil {
 			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 			errorData := dtos.Error{
 				Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
@@ -281,7 +282,7 @@ func (h *IndexHandlerImpl) gate(c echo.Context, req dtos.GateRequest, guest mode
 		guestCookie.Value = tokenStr
 		guestCookie.MaxAge = maxAge
 		guestCookie.Path = "/"
-		guestCookie.Domain = "localhost"
+		guestCookie.Domain = os.Getenv("SERVER_DOMAIN")
 		guestCookie.Secure = false
 		guestCookie.HttpOnly = false
 

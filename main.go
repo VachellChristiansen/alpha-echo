@@ -52,7 +52,7 @@ func main() {
 	if err := godotenv.Load(envFile); err != nil {
 		logger["ERROR"].Fatalf("Loading env failed. %v\n", err)
 	}
-	fmt.Printf("MODE: %s", os.Getenv("ENV_INFO"))
+	fmt.Printf("MODE: %s\n", os.Getenv("ENV_INFO"))
 
 	// Echo
 	e := echo.New()
