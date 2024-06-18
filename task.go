@@ -120,18 +120,30 @@ func regularSeeder(db *gorm.DB, logger Logger) {
 func projectSeeder(db *gorm.DB, logger Logger) {
 	projects := []models.Project{
 		{
-			Name:        "Proximus",
-			Description: "Machine learning projects.",
-			Path:        fmt.Sprintf("%s/proximus", os.Getenv("ML_URL")),
+			Name:            "Proximus",
+			Description:     "Machine learning projects.",
+			PagePath:        "/proximus",
+			ExternalPath:    fmt.Sprintf("%s/proximus", os.Getenv("ML_URL")),
+			RegularAccessID: 1,
 		},
 		{
-			Name:        "Opus",
-			Description: "Task management tool.",
-			Path:        fmt.Sprintf("%s/opus", os.Getenv("SERVER_URL")),
+			Name:            "Opus",
+			Description:     "Task management tool.",
+			PagePath:        "/opus",
+			ExternalPath:    fmt.Sprintf("%s/opus", os.Getenv("ML_URL")),
+			RegularAccessID: 4,
+		},
+		{
+			Name:            "Chrysus",
+			Description:     "Finance Management tool.",
+			PagePath:        "/chrysus",
+			ExternalPath:    fmt.Sprintf("%s/chrysus", os.Getenv("ML_URL")),
+			RegularAccessID: 4,
 		},
 	}
 	tags := []string{
 		"ML,Tools",
+		"Tools",
 		"Tools",
 	}
 

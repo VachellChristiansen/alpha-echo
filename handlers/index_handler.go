@@ -5,10 +5,12 @@ import (
 	"alpha-echo/models"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -43,6 +45,21 @@ func NewIndexHandler(db *gorm.DB, validate *validator.Validate, logger map[strin
 
 func (h *IndexHandlerImpl) Index(c echo.Context) error {
 	regular := c.Get("regular").(models.Regular)
+	if regular.RegularSession.RegularState.PageDataStore != nil {
+		var pageData interface{}
+		if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &pageData); err != nil {
+			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
+				Message: "Loading Page Data errorData",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+		regular.RegularSession.RegularState.PageData = map[string]interface{}{
+			"Data": pageData,
+		}
+	}
 	return c.Render(http.StatusOK, "index", regular.RegularSession.RegularState)
 }
 
@@ -69,9 +86,43 @@ func (h *IndexHandlerImpl) About(c echo.Context) error {
 }
 
 func (h *IndexHandlerImpl) Projects(c echo.Context) error {
+	var (
+		projects []models.Project
+		dataMap  []map[string]interface{}
+	)
+
 	regular := c.Get("regular").(models.Regular)
 
+	if err := h.db.Preload("ProjectTags").Where("regular_access_id >= ?", regular.RegularAccessID).Find(&projects).Error; err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
+			Message: "Fetching Projects Error",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+	dataMap = projectsToMap(projects)
+	fmt.Println(dataMap)
+
+	regular.RegularSession.RegularState.PageData = map[string]interface{}{
+		"Data": dataMap,
+	}
+
+	dataByte, err := json.Marshal(dataMap)
+	if err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
+			Message: "Processing Projects Data Error",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+
 	regular.RegularSession.RegularState.Page = "projects"
+	regular.RegularSession.RegularState.PageState = "projects-list"
+	regular.RegularSession.RegularState.PageDataStore = dataByte
 
 	if err := h.saveState(c, &regular); err != nil {
 		return err
@@ -313,4 +364,21 @@ func (h *IndexHandlerImpl) saveState(c echo.Context, regular *models.Regular) er
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 	return nil
+}
+
+func projectsToMap(p []models.Project) (projectsMap []map[string]interface{}) {
+	for _, i := range p {
+		result := make(map[string]interface{})
+
+		v := reflect.ValueOf(i)
+		t := reflect.TypeOf(i)
+
+		for i := 0; i < v.NumField(); i++ {
+			fieldName := t.Field(i).Name
+			fieldValue := v.Field(i).Interface()
+			result[fieldName] = fieldValue
+		}
+		projectsMap = append(projectsMap, result)
+	}
+	return projectsMap
 }

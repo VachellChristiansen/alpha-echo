@@ -1,13 +1,9 @@
 {{ define "projects" }}
-<div class="w-full h-full flex flex-col gap-4">
-    <section id="personal-projects" class="w-full flex flex-col gap-2">
-        <h2 class="text-4xl">Personal Projects</h2>
-        <div class="w-full h-1 bg-amber-900"></div>
-        <div class="flex gap-2">
-            <div class="w-full md:w-80 h-64 bg-stone-200">
-                
-            </div>
-        </div>
-    </section>
+<div class="w-full h-full">
+    {{ if eq .PageState "projects-list" }}
+    {{ template "projects-list" . }}
+    {{ else if eq .Page "projects-todo" }}
+    {{ template "projects-todo" . }}
+    {{ end }}
 </div>
 {{ end }}

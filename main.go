@@ -39,6 +39,7 @@ func (t *Templ) Render(w io.Writer, name string, data interface{}, c echo.Contex
 func newTemplate() *Templ {
 	t := template.Must(template.ParseGlob("views/*.html"))
 	t = template.Must(t.ParseGlob("views/components/*.html"))
+	t = template.Must(t.ParseGlob("views/components/projects/*.html"))
 	return &Templ{
 		templ: t,
 	}
@@ -66,19 +67,19 @@ func main() {
 		MaxAge:           12 * 60 * 60,
 	}))
 	e.Renderer = newTemplate()
-	if os.Getenv("ENV_INFO") == "DEV" {
-		e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-			LogHost:     true,
-			LogLatency:  true,
-			LogProtocol: true,
-			LogURI:      true,
-			LogURIPath:  true,
-			LogValuesFunc: func(e echo.Context, v middleware.RequestLoggerValues) error {
-				fmt.Printf("REQUEST\nHost: %v\nLatency: %v\nProtocol: %v\nURI: %v\nURI Path: %v\n", v.Host, v.Latency, v.Protocol, v.URI, v.URIPath)
-				return nil
-			},
-		}))
-	}
+	// if os.Getenv("ENV_INFO") == "DEV" {
+	// 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+	// 		LogHost:     true,
+	// 		LogLatency:  true,
+	// 		LogProtocol: true,
+	// 		LogURI:      true,
+	// 		LogURIPath:  true,
+	// 		LogValuesFunc: func(e echo.Context, v middleware.RequestLoggerValues) error {
+	// 			fmt.Printf("REQUEST\nHost: %v\nLatency: %v\nProtocol: %v\nURI: %v\nURI Path: %v\n", v.Host, v.Latency, v.Protocol, v.URI, v.URIPath)
+	// 			return nil
+	// 		},
+	// 	}))
+	// }
 
 	// Database
 	dsn := fmt.Sprintf(
