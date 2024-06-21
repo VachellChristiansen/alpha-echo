@@ -3,9 +3,9 @@
     <div class="max-w-[600px] md:max-w-[750px] lg:max-w-[1000px] xl:max-w-[1250px] w-full h-full px-4 md:px-0 flex justify-between items-center">
         <button hx-get="/default" hx-target="body" class="font-extralight text-2xl">Vasti</button>
         <nav class="h-full flex gap-4">
-            <button hx-get="/about" hx-target="body" class='transition-all hover:cursor-pointer border-b-4 {{ if eq .Page "about" }} border-stone-950 {{ else }} border-transparent hover:border-stone-950 {{ end }}'>About</button>
-            <button hx-get="/projects" hx-target="body" class='transition-all hover:cursor-pointer border-b-4 {{ if eq .Page "projects" }} border-stone-950 {{ else }} border-transparent hover:border-stone-950 {{ end }}'>Projects</button>
-            <button hx-get="/gate" hx-target="body" class='transition-all hover:cursor-pointer border-b-4 {{ if eq .Page "gate" }} border-stone-950 {{ else }} border-transparent hover:border-stone-950 {{ end }}'>Gate</button>
+            <button hx-get="/about" hx-target="body" class='transition-all hover:cursor-pointer border-b-4 {{ if eq .PageState "about" }} border-stone-950 {{ else }} border-transparent hover:border-stone-950 {{ end }}'>About</button>
+            <button hx-get="/projects" hx-target="body" class='transition-all hover:cursor-pointer border-b-4 {{ if eq .PageState "projects" }} border-stone-950 {{ else }} border-transparent hover:border-stone-950 {{ end }}'>Projects</button>
+            <button hx-get="/gate" hx-target="body" class='transition-all hover:cursor-pointer border-b-4 {{ if eq .PageState "gate" }} border-stone-950 {{ else }} border-transparent hover:border-stone-950 {{ end }}'>Gate</button>
         </nav>
     </div>
 </header>
