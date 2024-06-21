@@ -45,6 +45,7 @@ func NewIndexHandler(db *gorm.DB, validate *validator.Validate, logger map[strin
 
 func (h *IndexHandlerImpl) Index(c echo.Context) error {
 	regular := c.Get("regular").(models.Regular)
+
 	if regular.RegularSession.RegularState.PageDataStore != nil {
 		var pageData interface{}
 		if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &pageData); err != nil {
@@ -56,39 +57,39 @@ func (h *IndexHandlerImpl) Index(c echo.Context) error {
 			}
 			return c.Render(http.StatusInternalServerError, "error", errorData)
 		}
-		regular.RegularSession.RegularState.PageData = map[string]interface{}{
-			"Data": pageData,
-		}
+		regular.RegularSession.RegularState.PageData = pageData
 	}
+
 	return c.Render(http.StatusOK, "index", regular.RegularSession.RegularState)
 }
 
 func (h *IndexHandlerImpl) Default(c echo.Context) error {
 	regular := c.Get("regular").(models.Regular)
 
-	regular.RegularSession.RegularState.Page = "default"
+	regular.RegularSession.RegularState.PageState = "default"
 
 	if err := h.saveState(c, &regular); err != nil {
 		return err
 	}
+
 	return c.Render(http.StatusOK, "body", regular.RegularSession.RegularState)
 }
 
 func (h *IndexHandlerImpl) About(c echo.Context) error {
 	regular := c.Get("regular").(models.Regular)
 
-	regular.RegularSession.RegularState.Page = "about"
+	regular.RegularSession.RegularState.PageState = "about"
 
 	if err := h.saveState(c, &regular); err != nil {
 		return err
 	}
+
 	return c.Render(http.StatusOK, "body", regular.RegularSession.RegularState)
 }
 
 func (h *IndexHandlerImpl) Projects(c echo.Context) error {
 	var (
 		projects []models.Project
-		dataMap  []map[string]interface{}
 	)
 
 	regular := c.Get("regular").(models.Regular)
@@ -102,43 +103,32 @@ func (h *IndexHandlerImpl) Projects(c echo.Context) error {
 		}
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
-	dataMap = projectsToMap(projects)
-	fmt.Println(dataMap)
 
-	regular.RegularSession.RegularState.PageData = map[string]interface{}{
-		"Data": dataMap,
-	}
+	regular.RegularSession.RegularState.PageData = projectsToMap(projects)
 
-	dataByte, err := json.Marshal(dataMap)
-	if err != nil {
-		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
-		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
-			Message: "Processing Projects Data Error",
-			Error:   err.Error(),
-		}
-		return c.Render(http.StatusInternalServerError, "error", errorData)
-	}
-
-	regular.RegularSession.RegularState.Page = "projects"
-	regular.RegularSession.RegularState.PageState = "projects-list"
-	regular.RegularSession.RegularState.PageDataStore = dataByte
+	regular.RegularSession.RegularState.PageState = "projects"
+	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
 	if err := h.saveState(c, &regular); err != nil {
 		return err
 	}
+
 	return c.Render(http.StatusOK, "body", regular.RegularSession.RegularState)
 }
 
 func (h *IndexHandlerImpl) Gate(c echo.Context) error {
 	regular := c.Get("regular").(models.Regular)
 
-	regular.RegularSession.RegularState.Page = "gate"
-	regular.RegularSession.RegularState.PageState = "register"
+	regular.RegularSession.RegularState.PageState = "gate"
+	regular.RegularSession.RegularState.PageData = map[string]interface{}{
+		"InnerState": "register",
+	}
+	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
 	if err := h.saveState(c, &regular); err != nil {
 		return err
 	}
+
 	return c.Render(http.StatusOK, "body", regular.RegularSession.RegularState)
 }
 
@@ -158,11 +148,15 @@ func (h *IndexHandlerImpl) GateSwitch(c echo.Context) error {
 		return c.Render(http.StatusBadRequest, "error", errorData)
 	}
 
-	regular.RegularSession.RegularState.PageState = req.To
+	regular.RegularSession.RegularState.PageData = map[string]interface{}{
+		"InnerState": req.To,
+	}
+	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
 	if err := h.saveState(c, &regular); err != nil {
 		return err
 	}
+
 	return c.Render(http.StatusOK, "main", regular.RegularSession.RegularState)
 }
 
@@ -188,13 +182,19 @@ func (h *IndexHandlerImpl) GatePassing(c echo.Context) error {
 	}
 
 	if req.From == "register" {
-		regular.RegularSession.RegularState.PageState = "login"
+		regular.RegularSession.RegularState.PageData = map[string]interface{}{
+			"InnerState": "login",
+		}
+		regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+
 		if err := h.saveState(c, &regular); err != nil {
 			return err
 		}
+
 		return c.Render(http.StatusOK, "main", regular.RegularSession.RegularState)
 	} else if req.From == "login" {
-		regular.RegularSession.RegularState.Page = "default"
+		regular.RegularSession.RegularState.PageState = "default"
+
 		return c.Render(http.StatusOK, "body", regular.RegularSession.RegularState)
 	}
 
@@ -204,6 +204,7 @@ func (h *IndexHandlerImpl) GatePassing(c echo.Context) error {
 		Message: "Bad Request",
 		Error:   "bad request",
 	}
+
 	return c.Render(http.StatusBadRequest, "error", errorData)
 }
 
@@ -364,6 +365,15 @@ func (h *IndexHandlerImpl) saveState(c echo.Context, regular *models.Regular) er
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 	return nil
+}
+
+func (h *IndexHandlerImpl) convertToDatabyte(obj interface{}) (result []byte) {
+	dataByte, err := json.Marshal(obj)
+	if err != nil {
+		h.logger["ERROR"].Printf("Converting To Byte Error")
+		return nil
+	}
+	return dataByte
 }
 
 func projectsToMap(p []models.Project) (projectsMap []map[string]interface{}) {

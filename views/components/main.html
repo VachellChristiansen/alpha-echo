@@ -1,13 +1,13 @@
 {{ define "main" }}
 <main class="w-full my-2 flex-1 flex justify-center overflow-auto">
     <div class="max-w-[600px] md:max-w-[750px] lg:max-w-[1000px] xl:max-w-[1250px] w-full px-4 md:px-0 animate-fade-in-left">
-        {{ if eq .Page "default" }}
+        {{ if eq .PageState "default" }}
         {{ template "default" . }}
-        {{ else if eq .Page "about" }}
+        {{ else if eq .PageState "about" }}
         {{ template "about" . }}
-        {{ else if eq .Page "projects" }}
+        {{ else if eq .PageState "projects" }}
         {{ template "projects" . }}
-        {{ else if eq .Page "gate" }}
+        {{ else if eq .PageState "gate" }}
         {{ template "gate" . }}
         {{ end }}
     </div>

@@ -39,7 +39,7 @@ func (t *Templ) Render(w io.Writer, name string, data interface{}, c echo.Contex
 func newTemplate() *Templ {
 	t := template.Must(template.ParseGlob("views/*.html"))
 	t = template.Must(t.ParseGlob("views/components/*.html"))
-	t = template.Must(t.ParseGlob("views/components/projects/*.html"))
+	t = template.Must(t.ParseGlob("views/components/opus/*.html"))
 	return &Templ{
 		templ: t,
 	}

@@ -1,9 +1,5 @@
 {{ define "projects" }}
 <div class="w-full h-full">
-    {{ if eq .PageState "projects-list" }}
     {{ template "projects-list" . }}
-    {{ else if eq .Page "projects-todo" }}
-    {{ template "projects-todo" . }}
-    {{ end }}
 </div>
 {{ end }}

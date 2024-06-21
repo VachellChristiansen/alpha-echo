@@ -11,6 +11,10 @@
     </style>
     <link href="/static/output.css?v=<?= time() ?>" rel="stylesheet">
 </head>
+{{ if eq .Page "index" }}
 {{ template "body" .}}
+{{ else if eq .Page "opus" }}
+{{ template "opus" .}}
+{{ end }}
 </html>
 {{ end }}
