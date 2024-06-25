@@ -5,6 +5,7 @@ module.exports = {
     extend: {
       fontFamily: {
         jsans: ["Josefin Sans", "sans-serif"],
+        montserrat: ["Montserrat", "sans-serif"],
       },
       keyframes: {
         'fade-in-left': {

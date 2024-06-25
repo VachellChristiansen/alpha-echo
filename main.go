@@ -132,7 +132,13 @@ func main() {
 	e.POST("/gate", h.IndexHandler.GatePassing)
 
 	opus := e.Group("/opus")
-	opus.GET("/", h.OpusHandler.Default)
+	{
+		opus.GET("/", h.OpusHandler.Default)
+		opus.GET("/tasks", h.OpusHandler.GetTasks)
+		opus.POST("/category", h.OpusHandler.AddCategory)
+		opus.POST("/task", h.OpusHandler.AddTask)
+		opus.DELETE("/category/:id", h.OpusHandler.DeleteCategory)
+	}
 
 	e.Start(os.Getenv("APP_PORT"))
 }

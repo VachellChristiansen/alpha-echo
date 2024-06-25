@@ -1,14 +1,28 @@
 {{ define "opus" }}
 <div class="w-full h-full flex">
-    <aside class="max-w-[120px] md:max-w-[150px] lg:max-w-[200px] xl:max-w-[250px] w-full flex flex-col bg-stone-100 border-r-2 border-stone-600">
-        <div class="w-full py-4 flex justify-center items-center font-extrabold text-6xl border-b-2 border-stone-600">OPUS</div>
-        <button hx-get="/projects" hx-target="body" class="p-4 bg-stone-300">
+    <aside class="max-w-[240px] md:max-w-[270px] lg:max-w-[300px] xl:max-w-[350px] w-full flex flex-col bg-stone-100 border-r-2 border-stone-600">
+        <div class="w-full py-4 flex justify-center items-center font-montserrat font-extrabold text-xl md:text-2xl lg:text-4xl xl:text-6xl border-b-2 border-stone-600">OPUS</div>
+        <button hx-get="/projects" hx-target="body" class="p-4 bg-stone-300 hover:brightness-75 active:brightness-50">
             Back
         </button>
-        <div class="flex flex-col gap-1">
-            <div class="w-full flex px-4 py-1">
-                <input type="checkbox" name="task1" id="my-first-task">My First Task
+        <div hx-get="/opus/tasks" hx-trigger="load" hx-target="#opus-task" hx-swap="outerHTML" class="w-full p-4 flex-1 flex flex-col gap-2">
+            {{ template "opus-task" }}
+            <div x-data="{ add_category: false }" class="border-t-2 border-stone-500 pt-2">
+                <form id="category" x-show="add_category" class="w-full flex gap-1">
+                    <input class="w-5/6 p-2" type="text" name="name" placeholder="New Category" autocomplete="off" title="Category Name" required>
+                    <input class="w-1/6 p-2" type="number" name="priority" placeholder="0-9" autocomplete="off" title="Category Priority">
+                    <button x-on:click="add_category = false" type="button"><i class="fa-solid fa-circle-xmark text-rose-400"></i></button>
+                    <button x-on:click="
+                        add_category = false;
+                        $nextTick(() => { document.getElementById('category').reset() });
+                    " type="submit" hx-post="/opus/category" hx-target="#opus-task" hx-swap="outerHTML"><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
+                </form>
+                <button x-show="!add_category" x-on:click="add_category = true"><i class="fa-solid fa-plus"></i> Add a Category</button>
             </div>
+        </div>
+        <div class="w-full p-4 flex flex-col items-start gap-1 bg-stone-300">
+            <button class="hover:underline hover:underline-offset-4">Settings</button>
+            <button class="hover:underline hover:underline-offset-4">Archived</button>
         </div>
     </aside>
 </div>

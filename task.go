@@ -43,6 +43,8 @@ func migrateModels(db *gorm.DB) func() {
 		db.AutoMigrate(models.RegularState{})
 		db.AutoMigrate(models.Project{})
 		db.AutoMigrate(models.ProjectTag{})
+		db.AutoMigrate(models.Category{})
+		db.AutoMigrate(models.Task{})
 	}
 }
 
