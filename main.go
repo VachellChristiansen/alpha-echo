@@ -131,5 +131,8 @@ func main() {
 	e.PUT("/gate", h.IndexHandler.GateSwitch)
 	e.POST("/gate", h.IndexHandler.GatePassing)
 
+	opus := e.Group("/opus")
+	opus.GET("/", h.OpusHandler.Default)
+
 	e.Start(os.Getenv("APP_PORT"))
 }

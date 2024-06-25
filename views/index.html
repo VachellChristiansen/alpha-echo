@@ -9,12 +9,8 @@
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap');
     </style>
-    <link href="/static/output.css?v=<?= time() ?>" rel="stylesheet">
+    <link href="/static/output.css?v={{ .Timestamp }}" rel="stylesheet">
 </head>
-{{ if eq .Page "index" }}
-{{ template "body" .}}
-{{ else if eq .Page "opus" }}
-{{ template "opus" .}}
-{{ end }}
+{{ template "body" . }}
 </html>
 {{ end }}

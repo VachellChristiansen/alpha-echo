@@ -59,31 +59,35 @@ func (h *IndexHandlerImpl) Index(c echo.Context) error {
 		}
 		regular.RegularSession.RegularState.PageData = pageData
 	}
-
+	regular.RegularSession.RegularState.Timestamp = time.Now().Unix()
 	return c.Render(http.StatusOK, "index", regular.RegularSession.RegularState)
 }
 
 func (h *IndexHandlerImpl) Default(c echo.Context) error {
 	regular := c.Get("regular").(models.Regular)
 
+	regular.RegularSession.RegularState.Page = "index"
 	regular.RegularSession.RegularState.PageState = "default"
 
 	if err := h.saveState(c, &regular); err != nil {
 		return err
 	}
 
+	regular.RegularSession.RegularState.Timestamp = time.Now().Unix()
 	return c.Render(http.StatusOK, "body", regular.RegularSession.RegularState)
 }
 
 func (h *IndexHandlerImpl) About(c echo.Context) error {
 	regular := c.Get("regular").(models.Regular)
 
+	regular.RegularSession.RegularState.Page = "index"
 	regular.RegularSession.RegularState.PageState = "about"
 
 	if err := h.saveState(c, &regular); err != nil {
 		return err
 	}
 
+	regular.RegularSession.RegularState.Timestamp = time.Now().Unix()
 	return c.Render(http.StatusOK, "body", regular.RegularSession.RegularState)
 }
 
@@ -106,6 +110,7 @@ func (h *IndexHandlerImpl) Projects(c echo.Context) error {
 
 	regular.RegularSession.RegularState.PageData = projectsToMap(projects)
 
+	regular.RegularSession.RegularState.Page = "index"
 	regular.RegularSession.RegularState.PageState = "projects"
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
@@ -113,12 +118,14 @@ func (h *IndexHandlerImpl) Projects(c echo.Context) error {
 		return err
 	}
 
+	regular.RegularSession.RegularState.Timestamp = time.Now().Unix()
 	return c.Render(http.StatusOK, "body", regular.RegularSession.RegularState)
 }
 
 func (h *IndexHandlerImpl) Gate(c echo.Context) error {
 	regular := c.Get("regular").(models.Regular)
 
+	regular.RegularSession.RegularState.Page = "index"
 	regular.RegularSession.RegularState.PageState = "gate"
 	regular.RegularSession.RegularState.PageData = map[string]interface{}{
 		"InnerState": "register",
@@ -129,6 +136,7 @@ func (h *IndexHandlerImpl) Gate(c echo.Context) error {
 		return err
 	}
 
+	regular.RegularSession.RegularState.Timestamp = time.Now().Unix()
 	return c.Render(http.StatusOK, "body", regular.RegularSession.RegularState)
 }
 
@@ -157,6 +165,7 @@ func (h *IndexHandlerImpl) GateSwitch(c echo.Context) error {
 		return err
 	}
 
+	regular.RegularSession.RegularState.Timestamp = time.Now().Unix()
 	return c.Render(http.StatusOK, "main", regular.RegularSession.RegularState)
 }
 

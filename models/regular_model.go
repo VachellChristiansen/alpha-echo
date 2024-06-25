@@ -39,6 +39,7 @@ type RegularState struct {
 	Page             string          `gorm:"size:100;default:'index'"`
 	PageState        string          `gorm:"size:100;default:'default'"`
 	PageDataStore    json.RawMessage `gorm:"type:jsonb"`
+	Timestamp        int64           `gorm:"-"`
 	PageData         interface{}     `gorm:"-"`
 	RegularSessionID uint
 }

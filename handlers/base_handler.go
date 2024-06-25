@@ -22,6 +22,7 @@ type Handler struct {
 	validate     *validator.Validate
 	logger       map[string]*log.Logger
 	IndexHandler IndexHandler
+	OpusHandler  OpusHandler
 }
 
 func NewHandler(db *gorm.DB, validate *validator.Validate, logger map[string]*log.Logger) Handler {
@@ -30,6 +31,7 @@ func NewHandler(db *gorm.DB, validate *validator.Validate, logger map[string]*lo
 		validate:     validate,
 		logger:       logger,
 		IndexHandler: NewIndexHandler(db, validate, logger),
+		OpusHandler:  NewOpusHandler(db, validate, logger),
 	}
 }
 

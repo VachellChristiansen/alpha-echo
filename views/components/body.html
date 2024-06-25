@@ -1,7 +1,13 @@
-{{ block "body" . }}
-<body class="w-screen h-screen overflow-hidden flex flex-col bg-stone-100 font-jsans text-stone-800">
-    {{ template "header" . }}
-    {{ template "main" . }}
-    {{ template "footer" }}
+{{ define "body" }}
+<body class="w-screen h-screen overflow-hidden font-jsans">
+    {{ if eq .Page "index" }}
+    <div class="w-full h-full flex flex-col bg-stone-100 text-stone-800">
+        {{ template "header" . }}
+        {{ template "main" . }}
+        {{ template "footer" }}
+    </div>
+    {{ else if eq .Page "opus" }}
+    {{ template "opus" .}}
+    {{ end }}
 </body>
 {{ end }}
