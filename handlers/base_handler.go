@@ -214,6 +214,7 @@ func (h *Handler) IPFilterMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Get the client's IP address
 		clientIP := c.RealIP()
+		h.logger["WARNING"].Printf("IP Filtered: %v", clientIP)
 
 		// Allow only requests from localhost
 		if clientIP != "127.0.0.1" && clientIP != "::1" {
