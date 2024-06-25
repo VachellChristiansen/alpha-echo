@@ -52,7 +52,7 @@ func (h *OpusHandlerImpl) GetTasks(c echo.Context) error {
 
 	regular := c.Get("regular").(models.Regular)
 
-	if err := h.db.Preload("Tasks").Where("regular_id = ?", regular.ID).Find(&categories).Error; err != nil {
+	if err := h.db.Preload("Tasks").Where("regular_id = ?", regular.ID).Order("priority asc").Find(&categories).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
@@ -99,7 +99,7 @@ func (h *OpusHandlerImpl) AddCategory(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	if err := h.db.Preload("Tasks").Where("regular_id = ?", regular.ID).Find(&categories).Error; err != nil {
+	if err := h.db.Preload("Tasks").Where("regular_id = ?", regular.ID).Order("priority asc").Find(&categories).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
@@ -164,7 +164,7 @@ func (h *OpusHandlerImpl) AddTask(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	if err := h.db.Preload("Tasks").Where("regular_id = ?", regular.ID).Find(&categories).Error; err != nil {
+	if err := h.db.Preload("Tasks").Where("regular_id = ?", regular.ID).Order("priority asc").Find(&categories).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
@@ -195,7 +195,7 @@ func (h *OpusHandlerImpl) DeleteCategory(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	if err := h.db.Preload("Tasks").Where("regular_id = ?", regular.ID).Find(&categories).Error; err != nil {
+	if err := h.db.Preload("Tasks").Where("regular_id = ?", regular.ID).Order("priority asc").Find(&categories).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
