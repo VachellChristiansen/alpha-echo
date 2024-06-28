@@ -90,7 +90,6 @@ func (h *OpusHandlerImpl) GetTaskByID(c echo.Context) error {
 	)
 
 	regular := c.Get("regular").(models.Regular)
-	fmt.Println("Passing Here")
 
 	id := c.Param("id")
 
