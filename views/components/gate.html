@@ -19,8 +19,8 @@
                 <input class="p-2 border-2 border-stone-300 bg-stone-100 focus:bg-stone-50 focus:outline-none" type="password" id="password" name="password" autocomplete="off">
             </div>
             <div>
-                <button hx-post="/gate" hx-vals='{"from": "register"}' hx-target="#gate" class="self-start p-2 bg-stone-200" type="submit">Join</button>
-                <button hx-put="/gate" hx-vals='{"to": "login"}' hx-target="#gate" class="self-start p-2 bg-stone-200" type="button">Login</button>
+                <button aria-label="Submit Register" id="submit_register" hx-post="/gate" hx-vals='{"from": "register"}' hx-target="#gate" class="self-start p-2 bg-stone-200" type="submit">Join</button>
+                <button aria-label="To Login" id="to_login" hx-put="/gate" hx-vals='{"to": "login"}' hx-target="#gate" class="self-start p-2 bg-stone-200" type="button">Login</button>
             </div>
         </form>
         {{ else if eq .PageData.InnerState "login" }}
@@ -39,8 +39,8 @@
                 <label for="remember">Remember Me</label>
             </div>
             <div>
-                <button hx-post="/gate" hx-vals='{"from": "login"}' hx-target="body" class="self-start p-2 bg-stone-200" type="submit">Continue</button>
-                <button hx-put="/gate" hx-vals='{"to": "register"}' hx-target="#gate" class="self-start p-2 bg-stone-200" type="button">Register</button>
+                <button aria-label="Submit Login" id="submit_login" hx-post="/gate" hx-vals='{"from": "login"}' hx-target="body" class="self-start p-2 bg-stone-200" type="submit">Continue</button>
+                <button aria-label="To Register" id="to_register" hx-put="/gate" hx-vals='{"to": "register"}' hx-target="#gate" class="self-start p-2 bg-stone-200" type="button">Register</button>
             </div>
         </form>
         {{ end }}
