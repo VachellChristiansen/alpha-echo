@@ -53,7 +53,7 @@ func (h *OpusHandlerImpl) Default(c echo.Context) error {
 		"TaskDetail":     "default",
 		"TaskGoals":      "default",
 		"TaskCompletion": "default",
-		"TaskNote":       "default",
+		"TaskNotes":       "default",
 	}
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
@@ -110,7 +110,7 @@ func (h *OpusHandlerImpl) GetTaskByID(c echo.Context) error {
 		"TaskDetail":     "default",
 		"TaskGoals":      "default",
 		"TaskCompletion": "default",
-		"TaskNote":       "default",
+		"TaskNotes":       "default",
 	}
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
