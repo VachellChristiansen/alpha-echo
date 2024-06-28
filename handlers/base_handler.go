@@ -191,12 +191,8 @@ func (h *Handler) AccessMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		accessLevel := strings.Split(c.Request().URL.Path, "/")[1]
-		if accessMap[accessLevel] == 0 {
-			h.logger["INFO"].Printf("%v Accessing Path: %v", regular.Name, c.Request().URL.Path)
-			return next(c)
-		}
 
-		if int(regular.RegularAccessID) > accessMap[accessLevel] {
+		if accessMap[accessLevel] > 0 && int(regular.RegularAccessID) > accessMap[accessLevel] {
 			h.logger["ERROR"].Printf("Access Not Sufficient: %v, Path: %v", regular, c.Request().URL.Path)
 			errorData := dtos.Error{
 				Code:    fmt.Sprintf("IE-Middleware-%v", http.StatusUnauthorized),
@@ -205,7 +201,7 @@ func (h *Handler) AccessMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 			return c.Render(http.StatusInternalServerError, "error", errorData)
 		}
-		h.logger["INFO"].Printf("%v Accessing Path: %v", regular.Name, c.Request().URL.Path)
+		h.logger["INFO"].Printf("%v Accessing Path: %v, Path Access Level: %v, Regular Access Level: %v", regular.Name, c.Request().URL.Path, accessMap[accessLevel], regular.RegularAccessID)
 		return next(c)
 	}
 }

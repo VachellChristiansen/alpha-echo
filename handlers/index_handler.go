@@ -185,6 +185,17 @@ func (h *IndexHandlerImpl) GatePassing(c echo.Context) error {
 		return c.Render(http.StatusBadRequest, "error", errorData)
 	}
 
+	if err := h.validate.Struct(req); err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusBadRequest),
+			Message: "Input Validation Error",
+			Error:   "bad inputs",
+		}
+
+		return c.Render(http.StatusBadRequest, "error", errorData)
+	}
+
 	regular, err := h.gate(c, req, regular)
 	if err != nil {
 		return err
@@ -222,6 +233,7 @@ func (h *IndexHandlerImpl) gate(c echo.Context, req dtos.GateRequest, guest mode
 		var (
 			access models.RegularAccess
 		)
+
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), 12)
 		if err != nil {
 			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())

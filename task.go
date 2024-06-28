@@ -45,6 +45,7 @@ func migrateModels(db *gorm.DB) func() {
 		db.AutoMigrate(models.ProjectTag{})
 		db.AutoMigrate(models.Category{})
 		db.AutoMigrate(models.Task{})
+		db.AutoMigrate(models.TaskGoal{})
 	}
 }
 
@@ -131,7 +132,7 @@ func projectSeeder(db *gorm.DB, logger Logger) {
 		{
 			Name:            "Opus",
 			Description:     "Task management tool.",
-			PagePath:        "/opus",
+			PagePath:        "/r/opus",
 			ExternalPath:    fmt.Sprintf("%s/opus", os.Getenv("ML_URL")),
 			RegularAccessID: 4,
 		},

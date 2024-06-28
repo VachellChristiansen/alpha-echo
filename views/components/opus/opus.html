@@ -5,9 +5,9 @@
         <button hx-get="/projects" hx-target="body" class="p-4 bg-stone-300 hover:brightness-75 active:brightness-50">
             Back
         </button>
-        <div hx-get="/opus/tasks" hx-trigger="load" hx-target="#opus-task" hx-swap="outerHTML" class="w-full p-4 flex-1 flex flex-col gap-2">
-            {{ template "opus-task" }}
-            <div x-data="{ add_category: false }" class="border-t-2 border-stone-500 pt-2">
+        <div hx-get="/r/opus/tasks" hx-trigger="load" hx-target="#opus-category" hx-swap="outerHTML" class="w-full mt-4 flex-1 flex flex-col gap-2">
+            {{ template "opus-category" }}
+            <div x-data="{ add_category: false }" class="border-t-2 border-stone-500 pt-2 px-4">
                 <form id="category" x-show="add_category" class="w-full flex gap-1">
                     <input class="w-5/6 p-2" type="text" name="name" placeholder="New Category" autocomplete="off" title="Category Name" required>
                     <input class="w-1/6 p-2" type="number" name="priority" placeholder="0-9" autocomplete="off" title="Category Priority">
@@ -15,9 +15,9 @@
                     <button x-on:click="
                         add_category = false;
                         $nextTick(() => { document.getElementById('category').reset() });
-                    " type="submit" hx-post="/opus/category" hx-target="#opus-task" hx-swap="outerHTML"><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
+                    " type="submit" hx-post="/r/opus/category" hx-target="#opus-category" hx-swap="outerHTML"><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
                 </form>
-                <button x-show="!add_category" x-on:click="add_category = true"><i class="fa-solid fa-plus"></i> Add a Category</button>
+                <button x-show="!add_category" x-on:click="add_category = true" class="hover:underline underline-offset-4"><i class="fa-solid fa-plus"></i> Add a Category</button>
             </div>
         </div>
         <div class="w-full p-4 flex flex-col items-start gap-1 bg-stone-300">
@@ -25,5 +25,6 @@
             <button class="hover:underline hover:underline-offset-4">Archived</button>
         </div>
     </aside>
+    {{ template "opus-main" . }}
 </div>
 {{ end }}

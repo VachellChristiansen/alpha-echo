@@ -1,0 +1,106 @@
+{{ define "opus-main" }}
+<main id="opus-main" class="w-full h-full bg-stone-600 grid grid-cols-2 grid-rows-2 gap-1">
+    {{ if .PageData.TaskOpen }}
+    <div class="p-4 col-span-1 row-span-1 bg-stone-300">
+        {{ if eq .PageData.TaskDetail "default" }}
+        <div class="w-full h-full flex justify-center items-center">
+            <button hx-put="/r/opus/state" hx-vals='{ "section": "detail", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 border-stone-600">Input Details</button>
+        </div>
+        {{ else if eq .PageData.TaskDetail "add" }}
+        <form class="w-full h-full flex flex-col gap-2">
+            <h2 class="text-2xl lg:text-3xl xl:text-4xl">Set Task Details</h2>
+            <label for="details">Details</label>
+            <textarea class="p-2 rounded-md resize-none" rows="5" name="details" id="details"></textarea>
+            <label for="start">Start Date</label>
+            <input class="p-2 rounded-md" type="datetime-local" name="start" id="start">
+            <label for="end">End Date</label>
+            <input class="p-2 rounded-md" type="datetime-local" name="end" id="end">
+            <div class="w-full mt-auto flex justify-between">
+                <button hx-put="/r/opus/state" hx-vals='{ "section": "detail", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Cancel</button>
+                <button hx-put="/r/opus/task" hx-vals='{ "id": "{{ .ID }}"}' class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
+            </div>
+        </form>
+        {{ end }}
+    </div>
+    <div class="p-4 col-span-1 row-span-1 bg-stone-200">
+        {{ if eq .PageData.TaskGoals "default" }}
+        <div class="w-full h-full flex justify-center items-center">
+            <button hx-put="/r/opus/state" hx-vals='{ "section": "goals", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 border-stone-600">Input Goals</button>
+        </div>
+        {{ else if eq .PageData.TaskGoals "add" }}
+        <form class="w-full h-full flex flex-col gap-2">
+            <h2 class="text-2xl lg:text-3xl xl:text-4xl">Task Name</h2>
+            <label for="goals">Goals</label>
+            <textarea class="p-2 rounded-md resize-none" rows="5" name="goals" id="goals"></textarea>
+            <label for="start">Start Date</label>
+            <input class="p-2 rounded-md" type="datetime-local" name="start" id="start">
+            <label for="end">End Date</label>
+            <input class="p-2 rounded-md" type="datetime-local" name="end" id="end">
+            <div class="w-full mt-auto flex justify-between">
+                <button hx-put="/r/opus/state" hx-vals='{ "section": "goals", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Cancel</button>
+                <button hx-post="/r/opus/task/goal" hx-vals='{ "id": "{{ .ID }}"}' class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
+            </div>
+        </form>
+        {{ end }}
+    </div>
+    <div class="p-4 col-span-1 row-span-1 bg-stone-200">
+        {{ if eq .PageData.TaskCompletion "default" }}
+        <h2 class="text-2xl lg:text-3xl xl:text-4xl">{{ .PageData.Task.Title }}</h2>
+        <h3 class="text-lg lg:text-xl xl:text-2xl mt-5">Goals to Accomplish</h3>
+        <div class="w-full flex flex-col">
+            <div class="w-full h-8 overflow-hidden flex gap-1 justify-between rounded-full bg-stone-800 border-4 border-stone-800">
+                <!-- Range over list of Goals -->
+                <!-- Conditional bg Color based on completion status -->
+                <div class="flex-1 flex-grow bg-stone-600"></div>
+                <div class="flex-1 flex-grow bg-stone-600"></div>
+                <div class="flex-1 flex-grow bg-stone-300"></div>
+                <div class="flex-1 flex-grow bg-stone-300"></div>
+                <div class="flex-1 flex-grow bg-stone-300"></div>
+                <div class="flex-1 flex-grow bg-stone-300"></div>
+            </div>
+        </div>
+        <h3 class="text-lg lg:text-xl xl:text-2xl mt-5">Days before Expected End Date</h3>
+        <div class="w-full flex flex-col">
+            <div class="w-full h-8 overflow-hidden flex gap-1 justify-between rounded-full bg-stone-800 border-4 border-stone-800">
+                <!-- Range over number of days for this task to be done -->
+                <!-- Use another inner state for this -->
+                <div class="flex-1 flex-grow bg-stone-600"></div>
+                <div class="flex-1 flex-grow bg-stone-600"></div>
+                <div class="flex-1 flex-grow bg-stone-300"></div>
+                <div class="flex-1 flex-grow bg-stone-300"></div>
+                <div class="flex-1 flex-grow bg-stone-300"></div>
+                <div class="flex-1 flex-grow bg-stone-300"></div>
+            </div>
+            <div class="w-full flex justify-between">
+                <span>Start Date</span>
+                <span>End Date</span>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+    <div class="p-4 col-span-1 row-span-1 bg-stone-300">
+        {{ if eq .PageData.TaskNotes "default" }}
+        <div class="w-full h-full flex justify-center items-center">
+            <button hx-put="/r/opus/state" hx-vals='{ "section": "notes", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 border-stone-600">Input Notes</button>
+        </div>
+        {{ else if eq .PageData.TaskNotes "add"}}
+        <form class="w-full h-full flex flex-col gap-1">
+            <h2 class="text-2xl lg:text-3xl xl:text-4xl">Put a Note</h2>
+            <label for="notes">Notes</label>
+            <textarea class="p-2 rounded-md resize-none" rows="10" name="notes" id="notes"></textarea>
+            <div class="w-full mt-auto flex justify-between">
+                <button hx-put="/r/opus/state" hx-vals='{ "section": "notes", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Cancel</button>
+                <button hx-put="/r/opus/task" hx-vals='{ "id": "{{ .ID }}"}' class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
+            </div>
+        </form>
+        {{ end }}
+    </div>
+    {{ else if not .PageData.TaskOpen }}
+    <div class="p-4 col-span-2 row-span-2 bg-stone-600">
+        <div class="w-full h-full flex justify-center items-center">
+            <span class="text-6xl text-stone-200">Please Select a Task</span>
+        </div>
+    </div>
+    {{ end }}
+</main>
+{{ end }}

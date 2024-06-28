@@ -45,5 +45,14 @@
         </form>
         {{ end }}
     </div>
+    <script>
+        // Handle validation errors so htmx can swap the element
+        document.body.addEventListener('htmx:beforeSwap', function(e) {
+            if (e.detail.xhr.status === 422 || e.detail.xhr.status === 400) {
+                e.detail.shouldSwap = true;
+                e.detail.isError = false;
+            }
+        });
+    </script>
 </div>
 {{ end }}

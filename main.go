@@ -32,12 +32,20 @@ type Templ struct {
 	templ *template.Template
 }
 
+func Repeat(text string, times int) string {
+	return strings.Repeat(text, times)
+}
+
 func (t *Templ) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templ.ExecuteTemplate(w, name, data)
 }
 
 func newTemplate() *Templ {
-	t := template.Must(template.ParseGlob("views/*.html"))
+	funcMap := template.FuncMap{
+		"Repeat": Repeat,
+	}
+
+	t := template.Must(template.ParseGlob("views/*.html")).Funcs(funcMap)
 	t = template.Must(t.ParseGlob("views/components/*.html"))
 	t = template.Must(t.ParseGlob("views/components/opus/*.html"))
 	return &Templ{
@@ -128,16 +136,23 @@ func main() {
 	e.GET("/about", h.IndexHandler.About)
 	e.GET("/projects", h.IndexHandler.Projects)
 	e.GET("/gate", h.IndexHandler.Gate)
-	e.PUT("/gate", h.IndexHandler.GateSwitch)
 	e.POST("/gate", h.IndexHandler.GatePassing)
+	e.PUT("/gate", h.IndexHandler.GateSwitch)
 
-	opus := e.Group("/opus")
+	regular := e.Group("/r")
 	{
-		opus.GET("/", h.OpusHandler.Default)
-		opus.GET("/tasks", h.OpusHandler.GetTasks)
-		opus.POST("/category", h.OpusHandler.AddCategory)
-		opus.POST("/task", h.OpusHandler.AddTask)
-		opus.DELETE("/category/:id", h.OpusHandler.DeleteCategory)
+		opus := regular.Group("/opus")
+		{
+			opus.GET("/", h.OpusHandler.Default)
+			opus.GET("/tasks", h.OpusHandler.GetTasks)
+			opus.GET("/task/:id", h.OpusHandler.GetTaskByID)
+			opus.POST("/category", h.OpusHandler.AddCategory)
+			opus.POST("/task", h.OpusHandler.AddTask)
+			opus.PUT("/task", h.OpusHandler.UpdateTask)
+			opus.PUT("/state", h.OpusHandler.UpdateState)
+			opus.DELETE("/category/:id", h.OpusHandler.DeleteCategory)
+			opus.DELETE("/task/:id", h.OpusHandler.DeleteTask)
+		}
 	}
 
 	e.Start(os.Getenv("APP_PORT"))
