@@ -60,6 +60,9 @@ func (h *IndexHandlerImpl) Index(c echo.Context) error {
 		regular.RegularSession.RegularState.PageData = pageData
 	}
 	regular.RegularSession.RegularState.Timestamp = time.Now().Unix()
+	regular.RegularSession.RegularState.Tokens = map[string]interface{}{
+		"FontAwesome": os.Getenv("TOKEN_FONT_AWESOME"),
+	}
 	return c.Render(http.StatusOK, "index", regular.RegularSession.RegularState)
 }
 

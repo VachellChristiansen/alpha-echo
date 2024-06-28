@@ -35,11 +35,12 @@ type RegularSession struct {
 
 type RegularState struct {
 	gorm.Model
-	LoggedIn         bool            `gorm:"type:bool;default:false"`
-	Page             string          `gorm:"size:100;default:'index'"`
-	PageState        string          `gorm:"size:100;default:'default'"`
-	PageDataStore    json.RawMessage `gorm:"type:jsonb"`
-	Timestamp        int64           `gorm:"-"`
-	PageData         interface{}     `gorm:"-"`
+	LoggedIn         bool                   `gorm:"type:bool;default:false"`
+	Page             string                 `gorm:"size:100;default:'index'"`
+	PageState        string                 `gorm:"size:100;default:'default'"`
+	PageDataStore    json.RawMessage        `gorm:"type:jsonb"`
+	PageData         interface{}            `gorm:"-"`
+	Timestamp        int64                  `gorm:"-"`
+	Tokens           map[string]interface{} `gorm:"-"`
 	RegularSessionID uint
 }
