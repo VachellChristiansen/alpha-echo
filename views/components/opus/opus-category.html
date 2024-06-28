@@ -6,13 +6,13 @@
             <span x-show="!delete_category{{ .ID }}" class="truncate">{{ .Name }}</span>
             <span x-show="delete_category{{ .ID }}" class="text-rose-400">Delete This Category ?</span>
             <div class="flex gap-1">
-                <button x-show="!delete_category{{ .ID }}" x-on:click="delete_category{{ .ID }} = true"><i class="fa-solid fa-circle-minus"></i></button>
-                <button x-show="!delete_category{{ .ID }}" x-on:click="add_task{{ .ID }} = true"><i class="fa-solid fa-circle-plus"></i></button>
-                <button x-show="() => {return (!delete_category{{ .ID }} && !open_category{{ .ID }})}" x-on:click="open_category{{ .ID}} = true"><i class="fa-solid fa-circle-chevron-down"></i></button>
-                <button x-show="() => {return (!delete_category{{ .ID }} && open_category{{ .ID }})}" x-on:click="open_category{{ .ID}} = false"><i class="fa-solid fa-circle-chevron-up"></i></button>
+                <button id="init_delete_category{{ .ID }}" x-show="!delete_category{{ .ID }}" x-on:click="delete_category{{ .ID }} = true"><i class="fa-solid fa-circle-minus"></i></button>
+                <button id="init_add_task{{ .ID }}" x-show="!delete_category{{ .ID }}" x-on:click="add_task{{ .ID }} = true"><i class="fa-solid fa-circle-plus"></i></button>
+                <button id="show_task{{ .ID }}" x-show="() => {return (!delete_category{{ .ID }} && !open_category{{ .ID }})}" x-on:click="open_category{{ .ID}} = true"><i class="fa-solid fa-circle-chevron-down"></i></button>
+                <button id="unshow_task{{ .ID }}" x-show="() => {return (!delete_category{{ .ID }} && open_category{{ .ID }})}" x-on:click="open_category{{ .ID}} = false"><i class="fa-solid fa-circle-chevron-up"></i></button>
                 <!-- Category Delete Confirmation -->
-                <button x-show="delete_category{{ .ID }}" x-on:click="delete_category{{ .ID }} = false"><i class="fa-solid fa-circle-xmark"></i></button>
-                <button x-show="delete_category{{ .ID }}" hx-delete="/r/opus/category/{{ .ID }}" hx-target="#opus-category" hx-swap="outerHTML"><i class="fa-solid fa-circle-check"></i></button>
+                <button id="cancel_delete_category{{ .ID }}" x-show="delete_category{{ .ID }}" x-on:click="delete_category{{ .ID }} = false"><i class="fa-solid fa-circle-xmark"></i></button>
+                <button id="confirm_delete_category{{ .ID }}" x-show="delete_category{{ .ID }}" hx-delete="/r/opus/category/{{ .ID }}" hx-target="#opus-category" hx-swap="outerHTML"><i class="fa-solid fa-circle-check"></i></button>
             </div>
         </div>
         <!-- Add Task Form -->
@@ -20,8 +20,8 @@
             <form id="category_task{{ .ID }}" class="w-full flex gap-1">
                 <input class="w-5/6 p-2" type="text" name="title" placeholder="New Task" autocomplete="off" title="Task Title" required>
                 <input class="w-1/6 p-2" type="number" name="priority" placeholder="0-9" autocomplete="off" title="Task Priority">
-                <button x-on:click="add_task{{ .ID }} = false" type="button"><i class="fa-solid fa-circle-xmark text-rose-400"></i></button>
-                <button x-on:click="
+                <button id="cancel_add_task{{ .ID }}" x-on:click="add_task{{ .ID }} = false" type="button"><i class="fa-solid fa-circle-xmark text-rose-400"></i></button>
+                <button id="submit_add_task{{ .ID }}" x-on:click="
                     add_task{{ .ID }} = false;
                     $nextTick(() => { document.getElementById('category_task{{ .ID }}').reset() });
                 " type="submit" hx-post="/r/opus/task" hx-target="#opus-category" hx-vals='{"parent_type": "category", "category_id": "{{ .ID }}"}' hx-swap="outerHTML"><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
