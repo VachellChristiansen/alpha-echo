@@ -9,11 +9,5 @@
     {{ else if eq .Page "opus" }}
     {{ template "opus" . }}
     {{ end }}
-    <script>
-        //State Instances Initialization
-        document.addEventListener("alpine:init", () => {
-            Alpine.store("Opus", {})
-        })
-    </script>
 </body>
 {{ end }}

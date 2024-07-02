@@ -1,6 +1,6 @@
 {{ define "opus-task" }}
 <div class="w-full flex flex-col">
-    <div hx-get="/r/opus/task/{{.ID}}" hx-target="#opus-main" hx-swap="outerHTML" x-init="$store.Opus.initTask({{ .ID }});console.log($store.Opus.tasks)" class="w-full px-4 py-2 flex justify-between hover:bg-stone-300 hover:cursor-pointer">
+    <div hx-get="/r/opus/task/{{.ID}}" hx-target="#opus-main" hx-swap="outerHTML" x-init="$store.Opus.initTask({{ .ID }})" class="w-full px-4 py-2 flex justify-between hover:bg-stone-300 hover:cursor-pointer">
         <span x-show="!$store.Opus.tasks['task{{ .ID }}']['delete_task']" class="truncate">{{ Repeat "-" .Inset }}>{{ .Title }}</span>
         <span x-show="$store.Opus.tasks['task{{ .ID }}']['delete_task']" class="text-rose-400">Delete This Task ?</span>
         <div class="flex gap-1">
