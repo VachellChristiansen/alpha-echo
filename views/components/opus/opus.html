@@ -1,5 +1,5 @@
 {{ define "opus" }}
-<div id="opus" class="w-full h-full flex">
+<div id="opus" x-data="{ Opus: {} }" x-init="init()" class="w-full h-full flex">
     <aside class="max-w-[240px] md:max-w-[270px] lg:max-w-[300px] xl:max-w-[350px] w-full flex flex-col bg-stone-100 border-r-2 border-stone-600">
         <div class="w-full py-4 flex justify-center items-center font-montserrat font-extrabold text-xl md:text-2xl lg:text-4xl xl:text-6xl border-b-2 border-stone-600">OPUS</div>
         <button hx-get="/projects" hx-target="body" class="p-4 bg-stone-300 hover:brightness-75 active:brightness-50">
@@ -8,13 +8,13 @@
         <div hx-get="/r/opus/tasks" hx-trigger="load" hx-target="#opus-category" hx-swap="outerHTML" class="w-full mt-4 flex-1 flex flex-col gap-2">
             {{ template "opus-category" }}
             <div class="border-t-2 border-stone-500 pt-2 px-4">
-                <form id="add_category" class="w-full gap-1 hidden">
+                <form id="add_category_form" x-show="$store.Opus.addCategoryState" class="w-full gap-1 flex">
                     <input class="w-5/6 p-2" type="text" name="name" placeholder="New Category" autocomplete="off" title="Category Name" required>
                     <input class="w-1/6 p-2" type="number" name="priority" placeholder="0-9" autocomplete="off" title="Category Priority">
-                    <button aria-label="Cancel Add Category" id="cancel_add_category{{ .ID }}" type="button" hx-on:click="toggleAddCategory()" ><i class="fa-solid fa-circle-xmark text-rose-400"></i></button>
-                    <button aria-label="Submit Add Category" id="submit_add_category{{ .ID }}" type="submit" hx-post="/r/opus/category" hx-target="#opus-category" hx-swap="outerHTML"><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
+                    <button aria-label="Cancel Add Category" type="button" @click="$store.Opus.toggleAddCategory()" ><i class="fa-solid fa-circle-xmark text-rose-400"></i></button>
+                    <button aria-label="Submit Add Category" type="submit" @click="$store.Opus.toggleAddCategory()" hx-on::after-request="resetAddCategoryForm()" hx-post="/r/opus/category" hx-target="#opus-category" hx-swap="outerHTML"><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
                 </form>
-                <button id="open_add_category" hx-on:click="toggleAddCategory()" class="hover:underline underline-offset-4"><i class="fa-solid fa-plus"></i> Add a Category</button>
+                <button x-show="!$store.Opus.addCategoryState" @click="$store.Opus.toggleAddCategory()" class="hover:underline underline-offset-4"><i class="fa-solid fa-plus"></i> Add a Category</button>
             </div>
         </div>
         <div class="w-full p-4 flex flex-col items-start gap-1 bg-stone-300">
@@ -24,198 +24,51 @@
     </aside>
     {{ template "opus-main" . }}
     <script>
-        // This is what happen when you try to use libraries, YOU MAKE IT YOURSELF
-        const Opus = {
-            addCategoryState: false,
-            categories: {},
-            tasks: {},
-            toggleAddCategory: () => {
-                const addCategory = document.getElementById("add_category")
-                const openAddCategory = document.getElementById("open_add_category")
-                if (addCategoryState) {
-                    addCategory.classList.remove("flex")
-                    addCategory.classList.add("hidden")
-                    openAddCategory.classList.remove("hidden")
-                } else {
-                    addCategory.classList.remove("hidden")
-                    addCategory.classList.add("flex")
-                    openAddCategory.classList.add("hidden")
+        function init() {
+            return Alpine.store("Opus", {
+                addCategoryState: false,
+                categories: {},
+                tasks: {},
+                initCategory(id) {
+                    this.categories[`category${id}`] = {
+                        "delete_category": false,
+                        "show_task": false,
+                        "add_task": false
+                    }
+                },
+                initTask(id) {
+                    this.tasks[`task${id}`] = {
+                        "delete_task": false,
+                        "show_child_task": false,
+                        "add_child_task": false
+                    }
+                },
+                toggleAddCategory() {
+                    this.addCategoryState = !this.addCategoryState
+                },
+                toggleAddTask(id) {
+                    this.categories[`category${id}`]["add_task"] = !this.categories[`category${id}`]["add_task"]
+                },
+                toggleDeleteCategory(id) {
+                    this.categories[`category${id}`]["delete_category"] = !this.categories[`category${id}`]["delete_category"]
+                },
+                toggleShowTask(id) {
+                    this.categories[`category${id}`]["show_task"] = !this.categories[`category${id}`]["show_task"]
+                },
+                toggleAddChildTask(id) {
+                    this.tasks[`task${id}`]["add_child_task"] = !this.tasks[`task${id}`]["add_child_task"]
+                },
+                toggleDeleteTask(id) {
+                    this.tasks[`task${id}`]["delete_task"] = !this.tasks[`task${id}`]["delete_task"]
+                },
+                toggleShowChildTask(id) {
+                    this.tasks[`task${id}`]["show_child_task"] = !this.tasks[`task${id}`]["show_child_task"]
                 }
-                addCategoryState = !addCategoryState
-            },
-            resetAddCategoryForm: () => {
-                document.getElementById('category').reset()
-            },
-            toggleAddTask: (id) => {
-                const addTask = document.getElementById(`add_task${id}`)
-                const state = Opus.categories[`category${id}`]
-
-                if (state["add_task"]) {
-                    addTask.classList.add("hidden")
-                } else {
-                    addTask.classList.remove("hidden")
-                }
-                state["add_task"] = !state["add_task"]
-                Opus.categories[`category${id}`] = state
-            },
-            toggleDeleteCategory: (id) => {
-                const categoryDelete = document.getElementById(`category_delete${id}`)
-                const categoryName = document.getElementById(`category_name${id}`)
-                const initAddTask = document.getElementById(`init_add_task${id}`)
-                const initDeleteCategory = document.getElementById(`init_delete_category${id}`)
-                const showTask = document.getElementById(`show_task${id}`)
-                const unshowTask = document.getElementById(`unshow_task${id}`)
-                const cancelDeleteCategory = document.getElementById(`cancel_delete_category${id}`)
-                const confirmDeleteCategory = document.getElementById(`confirm_delete_category${id}`)
-                const taskList = document.getElementById(`task_list${id}`)
-                const state = Opus.categories[`category${id}`]
-
-                if (state["delete_category"]) {
-                    categoryName.classList.remove("hidden")
-                    categoryDelete.classList.add("hidden")
-                    initDeleteCategory.classList.remove("hidden")
-                    initAddTask.classList.remove("hidden")
-                    cancelDeleteCategory.classList.add("hidden")
-                    confirmDeleteCategory.classList.add("hidden")
-                    if (state["show_task"]) {
-                        showTask.classList.add("hidden")
-                        unshowTask.classList.remove("hidden")
-                        taskList.classList.remove("hidden")
-                    } else {
-                        showTask.classList.remove("hidden")
-                        unshowTask.classList.add("hidden")
-                        taskList.classList.add("hidden")
-                    }
-                } else {
-                    categoryName.classList.add("hidden")
-                    categoryDelete.classList.remove("hidden")
-                    initAddTask.classList.add("hidden")
-                    initDeleteCategory.classList.add("hidden")
-                    cancelDeleteCategory.classList.remove("hidden")
-                    confirmDeleteCategory.classList.remove("hidden")
-                    if (state["show_task"]) {
-                        showTask.classList.add("hidden")
-                        unshowTask.classList.add("hidden")
-                        taskList.classList.add("hidden")
-                    }
-                }
-                state["delete_category"] = !state["delete_category"]
-                Opus.categories[`category${id}`] = state
-            },
-            toggleShowTask: (id) => {
-                const showTask = document.getElementById(`show_task${id}`)
-                const unshowTask = document.getElementById(`unshow_task${id}`)
-                const taskList = document.getElementById(`task_list${id}`)
-                const state = Opus.categories[`category${id}`]
-
-                if (state["show_task"]) {
-                    showTask.classList.remove("hidden")
-                    unshowTask.classList.add("hidden")
-                    if (taskList) {
-                        taskList.classList.remove("flex")
-                        taskList.classList.add("hidden")
-                    }
-                } else {
-                    showTask.classList.add("hidden")
-                    unshowTask.classList.remove("hidden")
-                    if (taskList) {
-                        taskList.classList.remove("hidden")
-                        taskList.classList.add("flex")
-                    }
-                }
-                state["show_task"] = !state["show_task"]
-                Opus.categories[`category${id}`] = state
-            },
-            toggleAddChildTask: (id) => {
-                const addChildTask = document.getElementById(`add_child_task${id}`)
-                const state = Opus.tasks[`task${id}`]
-
-                if (state["add_child_task"]) {
-                    addChildTask.classList.add("hidden")
-                } else {
-                    addChildTask.classList.remove("hidden")
-                }
-                state["add_child_task"] = !state["add_child_task"]
-                Opus.tasks[`task${id}`] = state
-            },
-            toggleDeleteTask: (id) => {
-                const taskDelete = document.getElementById(`task_delete${id}`)
-                const taskTitle = document.getElementById(`task_title${id}`)
-                const initAddChildTask = document.getElementById(`init_add_child_task${id}`)
-                const initDeleteTask = document.getElementById(`init_delete_task${id}`)
-                const showChildTask = document.getElementById(`show_child_task${id}`)
-                const unshowChildTask = document.getElementById(`unshow_child_task${id}`)
-                const cancelDeleteTask = document.getElementById(`cancel_delete_task${id}`)
-                const confirmDeleteTask = document.getElementById(`confirm_delete_task${id}`)
-                const childTaskList = document.getElementById(`child_task_list${id}`)
-                const addChildTask = document.getElementById(`add_child_task${id}`)
-                const state = Opus.tasks[`task${id}`]
-
-                if (state["delete_task"]) {
-                    taskTitle.classList.remove("hidden")
-                    taskDelete.classList.add("hidden")
-                    initDeleteTask.classList.remove("hidden")
-                    initAddChildTask.classList.remove("hidden")
-                    cancelDeleteTask.classList.add("hidden")
-                    confirmDeleteTask.classList.add("hidden")
-                    if (state["show_child_task"]) {
-                        unshowChildTask.classList.remove("hidden")
-                        if (childTaskList) {
-                            childTaskList.classList.remove("hidden")
-                            childTaskList.classList.add("flex")
-                        }
-                    } else {
-                        showChildTask.classList.remove("hidden")
-                    }
-                    if (state["add_child_task"]) {
-                        addChildTask.classList.remove("hidden")
-                    }
-                } else {
-                    taskTitle.classList.add("hidden")
-                    taskDelete.classList.remove("hidden")
-                    initDeleteTask.classList.add("hidden")
-                    initAddChildTask.classList.add("hidden")
-                    cancelDeleteTask.classList.remove("hidden")
-                    confirmDeleteTask.classList.remove("hidden")
-                    showChildTask.classList.add("hidden")
-                    if (state["show_child_task"]) {
-                        unshowChildTask.classList.add("hidden")
-                        if (childTaskList) {
-                            childTaskList.classList.add("hidden")
-                            childTaskList.classList.remove("flex")
-                        }
-                    }
-                    if (state["add_child_task"]) {
-                        addChildTask.classList.add("hidden")
-                    }
-                }
-                state["delete_task"] = !state["delete_task"]
-                Opus.tasks[`task${id}`] = state
-            },
-            toggleShowChildTask: (id) => {
-                const showChildTask = document.getElementById(`show_child_task${id}`)
-                const unshowChildTask = document.getElementById(`unshow_child_task${id}`)
-                const childTaskList = document.getElementById(`child_task_list${id}`)
-                const state = Opus.tasks[`task${id}`]
-
-                if (state["show_child_task"]) {
-                    showChildTask.classList.remove("hidden")
-                    unshowChildTask.classList.add("hidden")
-                    if (childTaskList) {
-                        childTaskList.classList.remove("flex")
-                        childTaskList.classList.add("hidden")
-                    }
-                } else {
-                    showChildTask.classList.add("hidden")
-                    unshowChildTask.classList.remove("hidden")
-                    if (childTaskList) {
-                        childTaskList.classList.remove("hidden")
-                        childTaskList.classList.add("flex")
-                    }
-                }
-                state["show_child_task"] = !state["show_child_task"]
-                Opus.tasks[`task${id}`] = state
-            }
+            })
+        }
+            
+        function resetAddCategoryForm() {
+            document.getElementById('add_category_form').reset()
         }
     </script>
 </div>

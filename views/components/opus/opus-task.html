@@ -1,40 +1,33 @@
 {{ define "opus-task" }}
 <div class="w-full flex flex-col">
-    <div hx-get="/r/opus/task/{{.ID}}" hx-target="#opus-main" hx-swap="outerHTML" class="w-full px-4 py-2 flex justify-between hover:bg-stone-300 hover:cursor-pointer">
-        <span id="task_title{{ .ID }}" class="truncate">{{ Repeat "-" .Inset }}>{{ .Title }}</span>
-        <span id="task_delete{{ .ID }}" class="text-rose-400 hidden">Delete This Task ?</span>
+    <div hx-get="/r/opus/task/{{.ID}}" hx-target="#opus-main" hx-swap="outerHTML" x-init="$store.Opus.initTask({{ .ID }});console.log($store.Opus.tasks)" class="w-full px-4 py-2 flex justify-between hover:bg-stone-300 hover:cursor-pointer">
+        <span x-show="!$store.Opus.tasks['task{{ .ID }}']['delete_task']" class="truncate">{{ Repeat "-" .Inset }}>{{ .Title }}</span>
+        <span x-show="$store.Opus.tasks['task{{ .ID }}']['delete_task']" class="text-rose-400">Delete This Task ?</span>
         <div class="flex gap-1">
-            <button aria-label="Init Delete Task {{ .ID }}" id="init_delete_task{{ .ID }}" hx-on:click="Opus.toggleDeleteTask({{ .ID }}); event.stopPropagation()"><i class="fa-solid fa-circle-minus"></i></button>
-            <button aria-label="Init Add Child Task {{ .ID }}" id="init_add_child_task{{ .ID }}" hx-on:click="Opus.toggleAddChildTask({{ .ID }}); event.stopPropagation()"><i class="fa-solid fa-circle-plus"></i></button>
-            <button aria-label="Show Child Task {{ .ID }}" id="show_child_task{{ .ID }}" hx-on:click="Opus.toggleShowChildTask({{ .ID }}); event.stopPropagation()"><i class="fa-solid fa-circle-chevron-down"></i></button>
-            <button aria-label="Unshow Child Task {{ .ID }}" id="unshow_child_task{{ .ID }}" hx-on:click="Opus.toggleShowChildTask({{ .ID }}); event.stopPropagation()" class="hidden"><i class="fa-solid fa-circle-chevron-up"></i></button>
+            <button aria-label="Init Delete Task {{ .ID }}" x-show="!$store.Opus.tasks['task{{ .ID }}']['delete_task']" @click="$store.Opus.toggleDeleteTask({{ .ID }}); event.stopPropagation()"><i class="fa-solid fa-circle-minus"></i></button>
+            <button aria-label="Init Add Child Task {{ .ID }}" x-show="!$store.Opus.tasks['task{{ .ID }}']['delete_task']" @click="$store.Opus.toggleAddChildTask({{ .ID }}); event.stopPropagation()"><i class="fa-solid fa-circle-plus"></i></button>
+            <button aria-label="Show Child Task {{ .ID }}" x-show="!$store.Opus.tasks['task{{ .ID }}']['delete_task'] && !$store.Opus.tasks['task{{ .ID }}']['show_child_task']" @click="$store.Opus.toggleShowChildTask({{ .ID }}); event.stopPropagation()"><i class="fa-solid fa-circle-chevron-down"></i></button>
+            <button aria-label="Unshow Child Task {{ .ID }}" x-show="!$store.Opus.tasks['task{{ .ID }}']['delete_task'] && $store.Opus.tasks['task{{ .ID }}']['show_child_task']" @click="$store.Opus.toggleShowChildTask({{ .ID }}); event.stopPropagation()"><i class="fa-solid fa-circle-chevron-up"></i></button>
             <!-- Category Delete Confirmation -->
-            <button aria-label="Cancel Delete Task {{ .ID }}" id="cancel_delete_task{{ .ID }}" hx-on:click="Opus.toggleDeleteTask({{ .ID }}); event.stopPropagation()" class="hidden"><i class="fa-solid fa-circle-xmark"></i></button>
-            <button aria-label="Confirm Delete Task {{ .ID }}" id="confirm_delete_task{{ .ID }}" hx-delete="/r/opus/task/{{ .ID }}" hx-target="#opus-category" hx-swap="outerHTML" class="hidden"><i class="fa-solid fa-circle-check"></i></button>
+            <button aria-label="Cancel Delete Task {{ .ID }}" x-show="$store.Opus.tasks['task{{ .ID }}']['delete_task']" @click="$store.Opus.toggleDeleteTask({{ .ID }}); event.stopPropagation()"><i class="fa-solid fa-circle-xmark"></i></button>
+            <button aria-label="Confirm Delete Task {{ .ID }}" x-show="$store.Opus.tasks['task{{ .ID }}']['delete_task']" hx-on:click="event.stopPropagation()" hx-delete="/r/opus/task/{{ .ID }}" hx-target="#opus-category" hx-swap="outerHTML"><i class="fa-solid fa-circle-check"></i></button>
         </div>
     </div>
-    <div id="add_child_task{{.ID}}" class="w-full px-4 hidden">
+    <div x-show="!$store.Opus.tasks['task{{ .ID }}']['delete_task'] && $store.Opus.tasks['task{{ .ID }}']['add_child_task']" class="w-full px-4">
         <form class="w-full flex gap-1">
             <input class="w-5/6 p-2" type="text" name="title" placeholder="New Task" autocomplete="off" title="Task Title Inner" required>
             <input class="w-1/6 p-2" type="number" name="priority" placeholder="0-9" autocomplete="off" title="Task Priority">
-            <button aria-label="Cancel Add Child Task {{ .ID }}" id="cancel_add_child_task{{ .ID }}" hx-on:click="Opus.toggleAddChildTask({{ .ID }})" type="button"><i class="fa-solid fa-circle-xmark text-rose-400"></i></button>
-            <button aria-label="Submit Add Child Task {{ .ID }}" id="submit_add_child_task{{.ID}}" type="submit" hx-post="/r/opus/task" hx-target="#opus-category" hx-vals='{"parent_type": "task", "category_id": "{{ .CategoryID }}", "parent_id": "{{ .ID }}"}' hx-swap="outerHTML"><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
+            <button aria-label="Cancel Add Child Task {{ .ID }}" @click="$store.Opus.toggleAddChildTask({{ .ID }})" type="button"><i class="fa-solid fa-circle-xmark text-rose-400"></i></button>
+            <button aria-label="Submit Add Child Task {{ .ID }}" type="submit" hx-post="/r/opus/task" hx-target="#opus-category" hx-vals='{"parent_type": "task", "category_id": "{{ .CategoryID }}", "parent_id": "{{ .ID }}"}' hx-swap="outerHTML"><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
         </form>
     </div>
     <!-- Task List on Category -->
     {{ if .ChildrenTasks }}
-    <div id="child_task_list{{ .ID }}" class="w-full flex-col hidden">
+    <div x-show="!$store.Opus.tasks['task{{ .ID }}']['delete_task'] && $store.Opus.tasks['task{{ .ID }}']['show_child_task']" class="w-full flex-col">
         {{ range .ChildrenTasks }}
             {{ template "opus-task" . }}
         {{ end }}
     </div>
     {{ end }}
-    <script>
-        Opus.tasks["task{{ .ID }}"] = {
-            "delete_task": false,
-            "add_child_task": false,
-            "show_child_task": false
-        }
-    </script>
 </div>
 {{ end }}
