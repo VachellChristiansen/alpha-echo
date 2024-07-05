@@ -46,19 +46,16 @@ func NewIndexHandler(db *gorm.DB, validate *validator.Validate, logger map[strin
 func (h *IndexHandlerImpl) Index(c echo.Context) error {
 	regular := c.Get("regular").(models.Regular)
 
-	if regular.RegularSession.RegularState.PageDataStore != nil {
-		var pageData interface{}
-		if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &pageData); err != nil {
-			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
-			errorData := dtos.Error{
-				Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
-				Message: "Loading Page Data errorData",
-				Error:   err.Error(),
-			}
-			return c.Render(http.StatusInternalServerError, "error", errorData)
+	if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &regular.RegularSession.RegularState.PageData); err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
+			Message: "Loading Page Data Error",
+			Error:   err.Error(),
 		}
-		regular.RegularSession.RegularState.PageData = pageData
+		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
+
 	regular.RegularSession.RegularState.Timestamp = time.Now().Unix()
 	regular.RegularSession.RegularState.Tokens = map[string]interface{}{
 		"FontAwesome": os.Getenv("TOKEN_FONT_AWESOME"),
@@ -111,7 +108,9 @@ func (h *IndexHandlerImpl) Projects(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	regular.RegularSession.RegularState.PageData = projectsToMap(projects)
+	regular.RegularSession.RegularState.PageData = map[string]interface{}{
+		"Projects": projectsToMap(projects),
+	}
 
 	regular.RegularSession.RegularState.Page = "index"
 	regular.RegularSession.RegularState.PageState = "projects"
@@ -391,8 +390,8 @@ func (h *IndexHandlerImpl) saveState(c echo.Context, regular *models.Regular) er
 	return nil
 }
 
-func (h *IndexHandlerImpl) convertToDatabyte(obj interface{}) (result []byte) {
-	dataByte, err := json.Marshal(obj)
+func (h *IndexHandlerImpl) convertToDatabyte(m map[string]interface{}) (result []byte) {
+	dataByte, err := json.Marshal(m)
 	if err != nil {
 		h.logger["ERROR"].Printf("Converting To Byte Error")
 		return nil

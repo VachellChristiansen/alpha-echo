@@ -265,6 +265,7 @@ func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 	} else if req.Updating == "notes" {
 		task.Notes = req.Notes
 	}
+	fmt.Println(task)
 
 	if err := h.db.Save(&task).Error; err != nil {
 		errorData := dtos.Error{

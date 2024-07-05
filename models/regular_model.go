@@ -1,9 +1,9 @@
 package models
 
 import (
-	"encoding/json"
 	"time"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -38,8 +38,8 @@ type RegularState struct {
 	LoggedIn         bool                   `gorm:"type:bool;default:false"`
 	Page             string                 `gorm:"size:100;default:'index'"`
 	PageState        string                 `gorm:"size:100;default:'default'"`
-	PageDataStore    json.RawMessage        `gorm:"type:jsonb"`
-	PageData         interface{}            `gorm:"-"`
+	PageDataStore    datatypes.JSON         `gorm:"type:jsonb"`
+	PageData         map[string]interface{} `gorm:"-"`
 	Timestamp        int64                  `gorm:"-"`
 	Tokens           map[string]interface{} `gorm:"-"`
 	RegularSessionID uint
