@@ -23,6 +23,11 @@
         </div>
     </aside>
     {{ template "opus-main" . }}
+    {{ if .PageData.Refresh }}
+    <script>
+        location.reload()
+    </script>
+    {{ end }}
     <script>
         function init() {
             return Alpine.store("Opus", {
@@ -70,7 +75,6 @@
         function resetAddCategoryForm() {
             document.getElementById('add_category_form').reset()
         }
-        console.clear()
     </script>
 </div>
 {{ end }}

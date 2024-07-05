@@ -9,10 +9,5 @@
     {{ else if eq .Page "opus" }}
     {{ template "opus" . }}
     {{ end }}
-    <script>
-        window.addEventListener('error', event => {
-            location.reload()
-        });
-    </script>
 </body>
 {{ end }}

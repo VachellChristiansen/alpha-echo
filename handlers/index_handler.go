@@ -56,10 +56,16 @@ func (h *IndexHandlerImpl) Index(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
+	regular.RegularSession.RegularState.PageData["Refresh"] = false
 	regular.RegularSession.RegularState.Timestamp = time.Now().Unix()
 	regular.RegularSession.RegularState.Tokens = map[string]interface{}{
 		"FontAwesome": os.Getenv("TOKEN_FONT_AWESOME"),
 	}
+
+	if err := h.saveState(c, &regular); err != nil {
+		return err
+	}
+
 	return c.Render(http.StatusOK, "index", regular.RegularSession.RegularState)
 }
 
@@ -382,7 +388,7 @@ func (h *IndexHandlerImpl) saveState(c echo.Context, regular *models.Regular) er
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
-			Message: "Fetching Regular Information Error [Session Might Be Invalid]",
+			Message: "Saving State Error",
 			Error:   err.Error(),
 		}
 		return c.Render(http.StatusInternalServerError, "error", errorData)

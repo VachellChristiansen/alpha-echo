@@ -49,6 +49,7 @@ func (h *OpusHandlerImpl) Default(c echo.Context) error {
 
 	regular.RegularSession.RegularState.Page = "opus"
 	regular.RegularSession.RegularState.PageData = map[string]interface{}{
+		"Refresh":        true,
 		"TaskOpen":       false,
 		"TaskDetail":     "default",
 		"TaskGoals":      "default",
