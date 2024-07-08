@@ -30,17 +30,14 @@ type OpusHandler interface {
 type OpusHandlerImpl struct {
 	db       *gorm.DB
 	validate *validator.Validate
-	location *time.Location
 	logger   map[string]*log.Logger
 }
 
 func NewOpusHandler(db *gorm.DB, validate *validator.Validate, logger map[string]*log.Logger) OpusHandler {
-	location, _ := time.LoadLocation("Asia/Jakarta")
 	return &OpusHandlerImpl{
 		db:       db,
 		validate: validate,
 		logger:   logger,
-		location: location,
 	}
 }
 
@@ -112,6 +109,7 @@ func (h *OpusHandlerImpl) GetTaskByID(c echo.Context) error {
 		"TaskCompletion": "default",
 		"TaskNotes":      "default",
 	}
+	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
 	if err := h.saveState(c, &regular); err != nil {
@@ -240,6 +238,8 @@ func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 		task models.Task
 	)
 
+	regular := c.Get("regular").(models.Regular)
+
 	if err := c.Bind(&req); err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
@@ -261,12 +261,29 @@ func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 
 	if req.Updating == "details" {
 		task.Details = req.Details
-		task.StartDate = req.StartDate.In(h.location)
-		task.EndDate = req.EndDate.In(h.location)
+		parsedStartDate, err := time.Parse("2006-01-02T15:04", req.StartDate)
+		if err != nil {
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+				Message: "Parsing Start Date Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+		parsedEndDate, err := time.Parse("2006-01-02T15:04", req.EndDate)
+		if err != nil {
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+				Message: "Parsing Start Date Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+		task.StartDate = parsedStartDate
+		task.EndDate = parsedEndDate
 	} else if req.Updating == "notes" {
 		task.Notes = req.Notes
 	}
-	fmt.Println(task)
 
 	if err := h.db.Save(&task).Error; err != nil {
 		errorData := dtos.Error{
@@ -277,13 +294,30 @@ func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	return nil
+	if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &regular.RegularSession.RegularState.PageData); err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
+			Message: "Loading Page Data errorData",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+	regular.RegularSession.RegularState.PageData["Task"] = task
+	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
+	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+
+	if err := h.saveState(c, &regular); err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "opus-main", regular.RegularSession.RegularState)
 }
 
 func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 	var (
-		req      dtos.UpdateOpusStateRequest
-		pageData interface{}
+		req  dtos.UpdateOpusStateRequest
+		task models.Task
 	)
 
 	regular := c.Get("regular").(models.Regular)
@@ -298,7 +332,7 @@ func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 		return c.Render(http.StatusBadRequest, "error", errorData)
 	}
 
-	if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &pageData); err != nil {
+	if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &regular.RegularSession.RegularState.PageData); err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
@@ -308,20 +342,28 @@ func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	tmp := pageData.(map[string]interface{})
 	switch req.Section {
 	case "detail":
-		tmp["TaskDetail"] = req.State
+		regular.RegularSession.RegularState.PageData["TaskDetail"] = req.State
 	case "goals":
-		tmp["TaskGoals"] = req.State
+		regular.RegularSession.RegularState.PageData["TaskGoals"] = req.State
 	case "completion":
-		tmp["TaskCompletion"] = req.State
+		regular.RegularSession.RegularState.PageData["TaskCompletion"] = req.State
 	case "notes":
-		tmp["TaskNotes"] = req.State
+		regular.RegularSession.RegularState.PageData["TaskNotes"] = req.State
 	}
 
-	regular.RegularSession.RegularState.PageData = tmp
-	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(tmp)
+	if err := h.db.Where("id = ?", req.Id).First(&task).Error; err != nil {
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Message: "Fetching Task Error",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+	regular.RegularSession.RegularState.PageData["Task"] = task
+	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
+	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
 	if err := h.saveState(c, &regular); err != nil {
 		return err
@@ -416,4 +458,26 @@ func (h *OpusHandlerImpl) convertToDatabyte(obj interface{}) (result []byte) {
 
 func (h *OpusHandlerImpl) generatePreloadTask(depth int) string {
 	return fmt.Sprintf("Tasks%s", strings.Repeat(".ChildrenTasks", depth))
+}
+
+func (h *OpusHandlerImpl) extractTaskDate(data map[string]interface{}, task *models.Task) map[string]interface{} {
+	data["StartDate"] = task.StartDate.Format("2006-01-02T15:04")
+	data["EndDate"] = task.EndDate.Format("2006-01-02T15:04")
+
+	dayNow := time.Now().YearDay()
+	dayStart := task.StartDate.YearDay()
+	dayEnd := task.EndDate.YearDay()
+
+	dayOffset := dayNow - dayStart
+	dayProgress := make([]bool, dayEnd-dayStart)
+	for i := range dayProgress {
+		if i <= dayOffset {
+			dayProgress[i] = true
+		} else {
+			dayProgress[i] = false
+		}
+	}
+
+	data["DayProgress"] = dayProgress
+	return data
 }

@@ -1,7 +1,5 @@
 package dtos
 
-import "time"
-
 type AddCategoryRequest struct {
 	Name     string `json:"name" form:"name"`
 	Priority int    `json:"prioirty" form:"priority"`
@@ -16,15 +14,16 @@ type AddTaskRequest struct {
 }
 
 type UpdateTaskRequest struct {
-	Id        int       `json:"id" form:"id"`
-	Updating  string    `json:"updating" form:"updating"`
-	Details   string    `json:"details" form:"details"`
-	Notes     string    `json:"notes" form:"notes"`
-	StartDate time.Time `json:"start_date" form:"start_date"`
-	EndDate   time.Time `json:"end_date" form:"end_date"`
+	Id        int    `json:"id" form:"id"`
+	Updating  string `json:"updating" form:"updating"`
+	Details   string `json:"details" form:"details"`
+	Notes     string `json:"notes" form:"notes"`
+	StartDate string `json:"start_date" form:"start_date"`
+	EndDate   string `json:"end_date" form:"end_date"`
 }
 
 type UpdateOpusStateRequest struct {
+	Id      int    `json:"id" form:"id"`
 	Section string `json:"section" form:"section"`
 	State   string `json:"state" form:"state"`
 }

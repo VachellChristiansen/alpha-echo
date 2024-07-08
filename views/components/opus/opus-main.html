@@ -7,20 +7,20 @@
             <h2 class="text-2xl lg:text-3xl xl:text-4xl">Details</h2>
             <p>{{ .PageData.Task.Details }}</p>
             <div class="flex-1"></div>
-            <button hx-put="/r/opus/state" hx-vals='{ "section": "detail", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 border-2 border-stone-600">Input Details</button>
+            <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "detail", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Input Details</button>
         </div>
         {{ else if eq .PageData.TaskDetail "add" }}
         <form class="w-full h-full flex flex-col gap-2">
             <h2 class="text-2xl lg:text-3xl xl:text-4xl">Set Task Details</h2>
             <label for="details">Details</label>
             <textarea class="p-2 rounded-md resize-none" rows="5" name="details" id="details">{{ .PageData.Task.Details }}</textarea>
-            <label for="start">Start Date</label>
-            <input class="p-2 rounded-md" type="datetime-local" name="start" id="start">
-            <label for="end">End Date</label>
-            <input class="p-2 rounded-md" type="datetime-local" name="end" id="end">
+            <label for="start_date">Start Date</label>
+            <input class="p-2 rounded-md" type="datetime-local" name="start_date" id="start_date" value="{{ .PageData.StartDate }}">
+            <label for="end_date">End Date</label>
+            <input class="p-2 rounded-md" type="datetime-local" name="end_date" id="end_date" value="{{ .PageData.EndDate }}">
             <div class="w-full mt-auto flex justify-between">
-                <button hx-put="/r/opus/state" hx-vals='{ "section": "detail", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Cancel</button>
-                <button hx-put="/r/opus/task" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "updating": "details" }' hx-swap="none" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
+                <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "detail", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Cancel</button>
+                <button hx-put="/r/opus/task" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "updating": "details" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
             </div>
         </form>
         {{ end }}
@@ -67,16 +67,17 @@
             <div class="w-full h-8 overflow-hidden flex gap-1 justify-between rounded-full bg-stone-800 border-4 border-stone-800">
                 <!-- Range over number of days for this task to be done -->
                 <!-- Use another inner state for this -->
-                <div class="flex-1 flex-grow bg-stone-600"></div>
-                <div class="flex-1 flex-grow bg-stone-600"></div>
-                <div class="flex-1 flex-grow bg-stone-300"></div>
-                <div class="flex-1 flex-grow bg-stone-300"></div>
-                <div class="flex-1 flex-grow bg-stone-300"></div>
-                <div class="flex-1 flex-grow bg-stone-300"></div>
+                {{ range .PageData.DayProgress }}
+                    {{ if . }}
+                        <div class="flex-1 flex-grow bg-stone-600"></div>
+                    {{ else }}
+                        <div class="flex-1 flex-grow bg-stone-300"></div>
+                    {{ end }}
+                {{ end }}
             </div>
             <div class="w-full flex justify-between">
-                <span>Start Date</span>
-                <span>End Date</span>
+                <span>{{ TruncateTime .PageData.StartDate }}</span>
+                <span>{{ TruncateTime .PageData.EndDate }}</span>
             </div>
         </div>
         {{ end }}

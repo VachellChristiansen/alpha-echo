@@ -46,17 +46,19 @@ func NewIndexHandler(db *gorm.DB, validate *validator.Validate, logger map[strin
 func (h *IndexHandlerImpl) Index(c echo.Context) error {
 	regular := c.Get("regular").(models.Regular)
 
-	if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &regular.RegularSession.RegularState.PageData); err != nil {
-		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
-		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
-			Message: "Loading Page Data Error",
-			Error:   err.Error(),
+	if regular.RegularSession.RegularState.PageDataStore != nil {
+		if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &regular.RegularSession.RegularState.PageData); err != nil {
+			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
+				Message: "Loading Page Data Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
 		}
-		return c.Render(http.StatusInternalServerError, "error", errorData)
+		regular.RegularSession.RegularState.PageData["Refresh"] = false
 	}
 
-	regular.RegularSession.RegularState.PageData["Refresh"] = false
 	regular.RegularSession.RegularState.Timestamp = time.Now().Unix()
 	regular.RegularSession.RegularState.Tokens = map[string]interface{}{
 		"FontAwesome": os.Getenv("TOKEN_FONT_AWESOME"),

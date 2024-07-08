@@ -4,7 +4,6 @@ import (
 	"alpha-echo/handlers"
 	"flag"
 	"fmt"
-	"html/template"
 	"io"
 	"os"
 	"strings"
@@ -27,30 +26,8 @@ func init() {
 	flag.Parse()
 }
 
-// Template Renderer
-type Templ struct {
-	templ *template.Template
-}
-
-func Repeat(text string, times int) string {
-	return strings.Repeat(text, times)
-}
-
 func (t *Templ) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templ.ExecuteTemplate(w, name, data)
-}
-
-func newTemplate() *Templ {
-	funcMap := template.FuncMap{
-		"Repeat": Repeat,
-	}
-
-	t := template.Must(template.ParseGlob("views/*.html")).Funcs(funcMap)
-	t = template.Must(t.ParseGlob("views/components/*.html"))
-	t = template.Must(t.ParseGlob("views/components/opus/*.html"))
-	return &Templ{
-		templ: t,
-	}
 }
 
 func main() {
