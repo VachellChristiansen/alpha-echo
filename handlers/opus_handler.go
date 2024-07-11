@@ -21,6 +21,7 @@ type OpusHandler interface {
 	GetTaskByID(c echo.Context) error
 	AddCategory(c echo.Context) error
 	AddTask(c echo.Context) error
+	AddTaskGoal(c echo.Context) error
 	UpdateTask(c echo.Context) error
 	UpdateState(c echo.Context) error
 	DeleteCategory(c echo.Context) error
@@ -72,7 +73,7 @@ func (h *OpusHandlerImpl) GetTasks(c echo.Context) error {
 	if err := h.db.Preload(h.generatePreloadTask(10)).Where("regular_id = ?", regular.ID).Order("priority asc").Find(&categories).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Categories Error",
 			Error:   err.Error(),
 		}
@@ -94,7 +95,7 @@ func (h *OpusHandlerImpl) GetTaskByID(c echo.Context) error {
 	if err := h.db.Preload("TaskGoals").First(&task, id).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Categories Error",
 			Error:   err.Error(),
 		}
@@ -146,7 +147,7 @@ func (h *OpusHandlerImpl) AddCategory(c echo.Context) error {
 	if err := h.db.Create(&newCategory).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Creating Category Data Error",
 			Error:   err.Error(),
 		}
@@ -156,7 +157,7 @@ func (h *OpusHandlerImpl) AddCategory(c echo.Context) error {
 	if err := h.db.Preload(h.generatePreloadTask(10)).Where("regular_id = ?", regular.ID).Order("priority asc").Find(&categories).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Categories Error",
 			Error:   err.Error(),
 		}
@@ -197,7 +198,7 @@ func (h *OpusHandlerImpl) AddTask(c echo.Context) error {
 		if err := h.db.Where("id = ?", req.ParentID).First(&parentTask).Error; err != nil {
 			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 			errorData := dtos.Error{
-				Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+				Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 				Message: "Fetching Parent Task Error",
 				Error:   err.Error(),
 			}
@@ -212,8 +213,8 @@ func (h *OpusHandlerImpl) AddTask(c echo.Context) error {
 	if err := h.db.Create(&newTask).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
-			Message: "Fetching Parent Task Error",
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
+			Message: "Creating Task Error",
 			Error:   err.Error(),
 		}
 		return c.Render(http.StatusInternalServerError, "error", errorData)
@@ -222,7 +223,7 @@ func (h *OpusHandlerImpl) AddTask(c echo.Context) error {
 	if err := h.db.Preload(h.generatePreloadTask(10)).Where("regular_id = ?", regular.ID).Order("priority asc").Find(&categories).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Categories Error",
 			Error:   err.Error(),
 		}
@@ -230,6 +231,84 @@ func (h *OpusHandlerImpl) AddTask(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "opus-category", categories)
+}
+
+func (h *OpusHandlerImpl) AddTaskGoal(c echo.Context) error {
+	var (
+		task models.Task
+		req  dtos.AddTaskGoalRequest
+	)
+	regular := c.Get("regular").(models.Regular)
+
+	if err := c.Bind(&req); err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusBadRequest),
+			Message: "Bad Request",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusBadRequest, "error", errorData)
+	}
+
+	parsedStartDate, err := time.Parse("2006-01-02T15:04", req.StartDateGoal)
+	if err != nil {
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Message: "Parsing Start Date Error",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+	parsedEndDate, err := time.Parse("2006-01-02T15:04", req.EndDateGoal)
+	if err != nil {
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Message: "Parsing Start Date Error",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+
+	newGoal := models.TaskGoal{
+		TaskID:    req.TaskID,
+		GoalText:  req.GoalText,
+		StartDate: parsedStartDate,
+		EndDate:   parsedEndDate,
+	}
+
+	if err := h.db.Create(&newGoal).Error; err != nil {
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
+			Message: "Creating Goal Error",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+
+	if err := h.db.Preload("TaskGoals").Where("id = ?", req.TaskID).First(&task).Error; err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
+			Message: "Fetching Task Error",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+
+	if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &regular.RegularSession.RegularState.PageData); err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
+			Message: "Loading Page Data errorData",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+	regular.RegularSession.RegularState.PageData["Task"] = task
+	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
+	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+
+	return c.Render(http.StatusOK, "opus-main", regular.RegularSession.RegularState)
 }
 
 func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
@@ -250,9 +329,9 @@ func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 		return c.Render(http.StatusBadRequest, "error", errorData)
 	}
 
-	if err := h.db.Where("id = ?", req.Id).First(&task).Error; err != nil {
+	if err := h.db.Where("id = ?", req.ID).First(&task).Error; err != nil {
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Task Error",
 			Error:   err.Error(),
 		}
@@ -287,7 +366,7 @@ func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 
 	if err := h.db.Save(&task).Error; err != nil {
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Saving Task Data Error",
 			Error:   err.Error(),
 		}
@@ -353,9 +432,9 @@ func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 		regular.RegularSession.RegularState.PageData["TaskNotes"] = req.State
 	}
 
-	if err := h.db.Where("id = ?", req.Id).First(&task).Error; err != nil {
+	if err := h.db.Preload("TaskGoals").Where("id = ?", req.ID).First(&task).Error; err != nil {
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Task Error",
 			Error:   err.Error(),
 		}
@@ -383,7 +462,7 @@ func (h *OpusHandlerImpl) DeleteCategory(c echo.Context) error {
 	if err := h.db.Delete(&(models.Category{}), categoryID).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Deleting Category Error",
 			Error:   err.Error(),
 		}
@@ -393,7 +472,7 @@ func (h *OpusHandlerImpl) DeleteCategory(c echo.Context) error {
 	if err := h.db.Preload(h.generatePreloadTask(10)).Where("regular_id = ?", regular.ID).Order("priority asc").Find(&categories).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Categories Error",
 			Error:   err.Error(),
 		}
@@ -414,7 +493,7 @@ func (h *OpusHandlerImpl) DeleteTask(c echo.Context) error {
 	if err := h.db.Delete(&(models.Task{}), taskID).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Deleting Category Error",
 			Error:   err.Error(),
 		}
@@ -424,7 +503,7 @@ func (h *OpusHandlerImpl) DeleteTask(c echo.Context) error {
 	if err := h.db.Preload(h.generatePreloadTask(10)).Where("regular_id = ?", regular.ID).Order("priority asc").Find(&categories).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Categories Error",
 			Error:   err.Error(),
 		}
@@ -438,7 +517,7 @@ func (h *OpusHandlerImpl) saveState(c echo.Context, regular *models.Regular) err
 	if err := h.db.Save(&regular.RegularSession.RegularState).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Regular Information Error [Session Might Be Invalid]",
 			Error:   err.Error(),
 		}

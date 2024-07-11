@@ -16,6 +16,7 @@ kill_server() {
 
 # Function to start the server
 start_server() {
+  echo "Pulling latest version..."
   git pull origin master
   echo "Starting the server..."
   go run . &

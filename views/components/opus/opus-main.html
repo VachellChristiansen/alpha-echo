@@ -27,21 +27,26 @@
     </div>
     <div class="p-4 col-span-1 row-span-1 bg-stone-200">
         {{ if eq .PageData.TaskGoals "default" }}
-        <div class="w-full h-full flex justify-center items-center">
-            <button hx-put="/r/opus/state" hx-vals='{ "section": "goals", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 border-2 border-stone-600">Input Goals</button>
+        <div class="w-full h-full flex flex-col justify-center items-center">
+            <ul class="flex flex-col gap-2">
+                {{ range .PageData.Task.TaskGoals }}
+                <li>{{ .GoalText }}</li>
+                {{ end }}
+            </ul>
+            <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "goals", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Input Goals</button>
         </div>
         {{ else if eq .PageData.TaskGoals "add" }}
         <form class="w-full h-full flex flex-col gap-2">
             <h2 class="text-2xl lg:text-3xl xl:text-4xl">Task Name</h2>
-            <label for="goals">Goals</label>
-            <textarea class="p-2 rounded-md resize-none" rows="5" name="goals" id="goals"></textarea>
-            <label for="start">Start Date</label>
-            <input class="p-2 rounded-md" type="datetime-local" name="start" id="start">
-            <label for="end">End Date</label>
-            <input class="p-2 rounded-md" type="datetime-local" name="end" id="end">
+            <label for="goal_text">Goals</label>
+            <textarea class="p-2 rounded-md resize-none" rows="5" name="goal_text" id="goal_text"></textarea>
+            <label for="start_date_goal">Start Date</label>
+            <input class="p-2 rounded-md" type="datetime-local" name="start_date_goal" id="start_date_goal">
+            <label for="end_date_goal">End Date</label>
+            <input class="p-2 rounded-md" type="datetime-local" name="end_date_goal" id="end_date_goal">
             <div class="w-full mt-auto flex justify-between">
-                <button hx-put="/r/opus/state" hx-vals='{ "section": "goals", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Cancel</button>
-                <button hx-post="/r/opus/task/goal" hx-vals='{ "id": "{{ .ID }}"}' class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
+                <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "goals", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Cancel</button>
+                <button hx-post="/r/opus/task-goal" hx-vals='{ "task_id": "{{ .PageData.Task.ID }}"}' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
             </div>
         </form>
         {{ end }}
@@ -65,8 +70,6 @@
         <h3 class="text-lg lg:text-xl xl:text-2xl mt-5">Days before Expected End Date</h3>
         <div class="w-full flex flex-col">
             <div class="w-full h-8 overflow-hidden flex gap-1 justify-between rounded-full bg-stone-800 border-4 border-stone-800">
-                <!-- Range over number of days for this task to be done -->
-                <!-- Use another inner state for this -->
                 {{ range .PageData.DayProgress }}
                     {{ if . }}
                         <div class="flex-1 flex-grow bg-stone-600"></div>

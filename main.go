@@ -125,6 +125,7 @@ func main() {
 			opus.GET("/task/:id", h.OpusHandler.GetTaskByID)
 			opus.POST("/category", h.OpusHandler.AddCategory)
 			opus.POST("/task", h.OpusHandler.AddTask)
+			opus.POST("/task-goal", h.OpusHandler.AddTaskGoal)
 			opus.PUT("/task", h.OpusHandler.UpdateTask)
 			opus.PUT("/state", h.OpusHandler.UpdateState)
 			opus.DELETE("/category/:id", h.OpusHandler.DeleteCategory)

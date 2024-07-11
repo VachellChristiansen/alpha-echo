@@ -13,8 +13,15 @@ type AddTaskRequest struct {
 	ParentType string `json:"parent_type" form:"parent_type"`
 }
 
+type AddTaskGoalRequest struct {
+	TaskID        uint   `json:"task_id" form:"task_id"`
+	GoalText      string `json:"goal_text" form:"goal_text"`
+	StartDateGoal string `json:"start_date_goal" form:"start_date_goal"`
+	EndDateGoal   string `json:"end_date_goal" form:"end_date_goal"`
+}
+
 type UpdateTaskRequest struct {
-	Id        int    `json:"id" form:"id"`
+	ID        uint   `json:"id" form:"id"`
 	Updating  string `json:"updating" form:"updating"`
 	Details   string `json:"details" form:"details"`
 	Notes     string `json:"notes" form:"notes"`
@@ -23,7 +30,7 @@ type UpdateTaskRequest struct {
 }
 
 type UpdateOpusStateRequest struct {
-	Id      int    `json:"id" form:"id"`
+	ID      uint   `json:"id" form:"id"`
 	Section string `json:"section" form:"section"`
 	State   string `json:"state" form:"state"`
 }
