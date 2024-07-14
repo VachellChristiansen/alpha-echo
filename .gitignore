@@ -5,5 +5,8 @@ tmp/
 .env.dev
 .env.prod
 
+.zed
+.vscode
+
 __debug*
 nouse.txt

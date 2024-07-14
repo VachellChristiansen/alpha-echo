@@ -128,6 +128,7 @@ func main() {
 			opus.POST("/task-goal", h.OpusHandler.AddTaskGoal)
 			opus.PUT("/task", h.OpusHandler.UpdateTask)
 			opus.PUT("/state", h.OpusHandler.UpdateState)
+			opus.PUT("/goal", h.OpusHandler.UpdateGoal)
 			opus.DELETE("/category/:id", h.OpusHandler.DeleteCategory)
 			opus.DELETE("/task/:id", h.OpusHandler.DeleteTask)
 		}

@@ -52,6 +52,7 @@ type TaskGoal struct {
 // Possible Status for Task:
 // 0: Not Done
 // 1: Done
+// 2: Deleted
 
 // Possible Status for TaskGoal:
 // 0: Not Done

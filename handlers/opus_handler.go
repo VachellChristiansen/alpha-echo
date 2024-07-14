@@ -22,8 +22,9 @@ type OpusHandler interface {
 	AddCategory(c echo.Context) error
 	AddTask(c echo.Context) error
 	AddTaskGoal(c echo.Context) error
-	UpdateTask(c echo.Context) error
 	UpdateState(c echo.Context) error
+	UpdateTask(c echo.Context) error
+	UpdateGoal(c echo.Context) error
 	DeleteCategory(c echo.Context) error
 	DeleteTask(c echo.Context) error
 }
@@ -92,7 +93,7 @@ func (h *OpusHandlerImpl) GetTaskByID(c echo.Context) error {
 
 	id := c.Param("id")
 
-	if err := h.db.Preload("TaskGoals").First(&task, id).Error; err != nil {
+	if err := h.db.Preload("TaskGoals", "status = ?", "0").First(&task, id).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
@@ -122,7 +123,7 @@ func (h *OpusHandlerImpl) GetTaskByID(c echo.Context) error {
 
 func (h *OpusHandlerImpl) AddCategory(c echo.Context) error {
 	var (
-		req        dtos.AddCategoryRequest
+		req        dtos.AddOpusCategoryRequest
 		categories []models.Category
 	)
 
@@ -169,7 +170,7 @@ func (h *OpusHandlerImpl) AddCategory(c echo.Context) error {
 
 func (h *OpusHandlerImpl) AddTask(c echo.Context) error {
 	var (
-		req        dtos.AddTaskRequest
+		req        dtos.AddOpusTaskRequest
 		categories []models.Category
 		newTask    models.Task
 	)
@@ -236,7 +237,7 @@ func (h *OpusHandlerImpl) AddTask(c echo.Context) error {
 func (h *OpusHandlerImpl) AddTaskGoal(c echo.Context) error {
 	var (
 		task models.Task
-		req  dtos.AddTaskGoalRequest
+		req  dtos.AddOpusTaskGoalRequest
 	)
 	regular := c.Get("regular").(models.Regular)
 
@@ -263,7 +264,7 @@ func (h *OpusHandlerImpl) AddTaskGoal(c echo.Context) error {
 	if err != nil {
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
-			Message: "Parsing Start Date Error",
+			Message: "Parsing End Date Error",
 			Error:   err.Error(),
 		}
 		return c.Render(http.StatusInternalServerError, "error", errorData)
@@ -285,7 +286,7 @@ func (h *OpusHandlerImpl) AddTaskGoal(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	if err := h.db.Preload("TaskGoals").Where("id = ?", req.TaskID).First(&task).Error; err != nil {
+	if err := h.db.Preload("TaskGoals", "status = ?", 0).First(&task, req.TaskID).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
@@ -307,88 +308,6 @@ func (h *OpusHandlerImpl) AddTaskGoal(c echo.Context) error {
 	regular.RegularSession.RegularState.PageData["Task"] = task
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
-
-	return c.Render(http.StatusOK, "opus-main", regular.RegularSession.RegularState)
-}
-
-func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
-	var (
-		req  dtos.UpdateTaskRequest
-		task models.Task
-	)
-
-	regular := c.Get("regular").(models.Regular)
-
-	if err := c.Bind(&req); err != nil {
-		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
-		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusBadRequest),
-			Message: "Bad Request",
-			Error:   err.Error(),
-		}
-		return c.Render(http.StatusBadRequest, "error", errorData)
-	}
-
-	if err := h.db.Where("id = ?", req.ID).First(&task).Error; err != nil {
-		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
-			Message: "Fetching Task Error",
-			Error:   err.Error(),
-		}
-		return c.Render(http.StatusInternalServerError, "error", errorData)
-	}
-
-	if req.Updating == "details" {
-		task.Details = req.Details
-		parsedStartDate, err := time.Parse("2006-01-02T15:04", req.StartDate)
-		if err != nil {
-			errorData := dtos.Error{
-				Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
-				Message: "Parsing Start Date Error",
-				Error:   err.Error(),
-			}
-			return c.Render(http.StatusInternalServerError, "error", errorData)
-		}
-		parsedEndDate, err := time.Parse("2006-01-02T15:04", req.EndDate)
-		if err != nil {
-			errorData := dtos.Error{
-				Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
-				Message: "Parsing Start Date Error",
-				Error:   err.Error(),
-			}
-			return c.Render(http.StatusInternalServerError, "error", errorData)
-		}
-		task.StartDate = parsedStartDate
-		task.EndDate = parsedEndDate
-	} else if req.Updating == "notes" {
-		task.Notes = req.Notes
-	}
-
-	if err := h.db.Save(&task).Error; err != nil {
-		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
-			Message: "Saving Task Data Error",
-			Error:   err.Error(),
-		}
-		return c.Render(http.StatusInternalServerError, "error", errorData)
-	}
-
-	if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &regular.RegularSession.RegularState.PageData); err != nil {
-		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
-		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
-			Message: "Loading Page Data errorData",
-			Error:   err.Error(),
-		}
-		return c.Render(http.StatusInternalServerError, "error", errorData)
-	}
-	regular.RegularSession.RegularState.PageData["Task"] = task
-	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
-	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
-
-	if err := h.saveState(c, &regular); err != nil {
-		return err
-	}
 
 	return c.Render(http.StatusOK, "opus-main", regular.RegularSession.RegularState)
 }
@@ -432,7 +351,7 @@ func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 		regular.RegularSession.RegularState.PageData["TaskNotes"] = req.State
 	}
 
-	if err := h.db.Preload("TaskGoals").Where("id = ?", req.ID).First(&task).Error; err != nil {
+	if err := h.db.Preload("TaskGoals", "status = ?", 0).First(&task, req.ID).Error; err != nil {
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Task Error",
@@ -441,6 +360,220 @@ func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 	regular.RegularSession.RegularState.PageData["Task"] = task
+	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
+	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+
+	if err := h.saveState(c, &regular); err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "opus-main", regular.RegularSession.RegularState)
+}
+
+func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
+	var (
+		req  dtos.UpdateOpusTaskRequest
+		task models.Task
+	)
+
+	regular := c.Get("regular").(models.Regular)
+
+	if err := c.Bind(&req); err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusBadRequest),
+			Message: "Bad Request",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusBadRequest, "error", errorData)
+	}
+
+	if err := h.db.Where("id = ?", req.ID).First(&task).Error; err != nil {
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
+			Message: "Fetching Task Error",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+
+	if req.Updating == "details" {
+		task.Details = req.Details
+		parsedStartDate, err := time.Parse("2006-01-02T15:04", req.StartDate)
+		if err != nil {
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+				Message: "Parsing Start Date Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+		parsedEndDate, err := time.Parse("2006-01-02T15:04", req.EndDate)
+		if err != nil {
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+				Message: "Parsing End Date Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+		task.StartDate = parsedStartDate
+		task.EndDate = parsedEndDate
+	} else if req.Updating == "notes" {
+		task.Notes = req.Notes
+	}
+
+	if err := h.db.Save(&task).Error; err != nil {
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
+			Message: "Saving Task Data Error",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+
+	if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &regular.RegularSession.RegularState.PageData); err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
+			Message: "Loading Page Data errorData",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+
+	if err := h.db.Preload("TaskGoals", "status = ?", 0).First(&task, req.ID).Error; err != nil {
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
+			Message: "Fetching Task Error",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+
+	regular.RegularSession.RegularState.PageData["Task"] = task
+	regular.RegularSession.RegularState.PageData["TaskDetail"] = "default"
+	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
+	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+
+	if err := h.saveState(c, &regular); err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "opus-main", regular.RegularSession.RegularState)
+}
+
+func (h *OpusHandlerImpl) UpdateGoal(c echo.Context) error {
+	var (
+		req  dtos.UpdateOpusGoalRequest
+		goal models.TaskGoal
+		task models.Task
+	)
+	regular := c.Get("regular").(models.Regular)
+
+	if err := c.Bind(&req); err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusBadRequest),
+			Message: "Bad Request",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusBadRequest, "error", errorData)
+	}
+
+	if req.Updating == "delete" {
+		if err := h.db.Model(&models.TaskGoal{}).Where("id = ?", req.ID).Update("Status", 2).Error; err != nil {
+			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
+				Message: "Deleting Task Goal Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+
+		if err := h.db.Delete(&(models.TaskGoal{}), req.ID).Error; err != nil {
+			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
+				Message: "Deleting Task Goal Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+	} else if req.Updating == "done" {
+		if err := h.db.Model(&models.TaskGoal{}).Where("id = ?", req.ID).Update("Status", 1).Error; err != nil {
+			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
+				Message: "Deleting Task Goal Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+	} else if req.Updating == "edit" {
+		if err := h.db.Where("id = ?", req.ID).First(&goal).Error; err != nil {
+			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
+				Message: "Fetching Task Goal Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+
+		parsedStartDate, err := time.Parse("2006-01-02T15:04", req.StartDateGoal)
+		if err != nil {
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+				Message: "Parsing Start Date Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+		parsedEndDate, err := time.Parse("2006-01-02T15:04", req.EndDateGoal)
+		if err != nil {
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+				Message: "Parsing End Date Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+		goal.StartDate = parsedStartDate
+		goal.EndDate = parsedEndDate
+		goal.GoalText = req.GoalText
+
+		if err := h.db.Save(&goal).Error; err != nil {
+			errorData := dtos.Error{
+				Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+				Message: "Saving Task Goal Data Error",
+				Error:   err.Error(),
+			}
+			return c.Render(http.StatusInternalServerError, "error", errorData)
+		}
+	}
+
+	if err := json.Unmarshal(regular.RegularSession.RegularState.PageDataStore, &regular.RegularSession.RegularState.PageData); err != nil {
+		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
+			Message: "Loading Page Data errorData",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+
+	if err := h.db.Preload("TaskGoals", "status = ?", 0).First(&task, req.TaskID).Error; err != nil {
+		errorData := dtos.Error{
+			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Message: "Fetching Task Error",
+			Error:   err.Error(),
+		}
+		return c.Render(http.StatusInternalServerError, "error", errorData)
+	}
+	regular.RegularSession.RegularState.PageData["Task"] = task
+	regular.RegularSession.RegularState.PageData["TaskGoals"] = "default"
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
@@ -518,7 +651,7 @@ func (h *OpusHandlerImpl) saveState(c echo.Context, regular *models.Regular) err
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
-			Message: "Fetching Regular Information Error [Session Might Be Invalid]",
+			Message: "Saving State Error",
 			Error:   err.Error(),
 		}
 		return c.Render(http.StatusInternalServerError, "error", errorData)
