@@ -64,6 +64,7 @@ func accessSeeder(db *gorm.DB, logger Logger) {
 		{Access: "Developer"},
 		{Access: "Enforcer"},
 		{Access: "Regular"},
+		{Access: "Guest"},
 	}
 
 	tx := db.Begin()
@@ -103,7 +104,7 @@ func regularSeeder(db *gorm.DB, logger Logger) {
 		regular.Password = string(hashedPassword)
 
 		// TODO: Define Default Access
-		if err := db.Where("access = ?", "Regular").First(&access).Error; err != nil {
+		if err := db.Where("access = ?", "Guest").First(&access).Error; err != nil {
 			logger["TASK"].Fatalf("[regularSeeder] Generating Default Access Failure")
 			return
 		}

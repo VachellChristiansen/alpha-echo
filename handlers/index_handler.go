@@ -368,6 +368,7 @@ func (h *IndexHandlerImpl) gate(c echo.Context, req dtos.GateRequest, guest mode
 		guestCookie.Domain = os.Getenv("SERVER_DOMAIN")
 		guestCookie.Secure = false
 		guestCookie.HttpOnly = false
+		guestCookie.SameSite = http.SameSiteLaxMode
 
 		guestSession.RegularState = guestState
 		regular.RegularSession = guestSession

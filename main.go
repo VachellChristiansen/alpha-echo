@@ -79,6 +79,7 @@ func main() {
 
 	// Validator
 	validate := validator.New(validator.WithRequiredStructEnabled())
+	validate.RegisterValidation("gate_name_in_register_only", GateNameRegisterValidation)
 
 	// Handler
 	h := handlers.NewHandler(db, validate, logger)
