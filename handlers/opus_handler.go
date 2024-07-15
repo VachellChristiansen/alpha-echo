@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"alpha-echo/constants"
 	"alpha-echo/dtos"
 	"alpha-echo/models"
 	"encoding/json"
@@ -111,6 +112,7 @@ func (h *OpusHandlerImpl) GetTaskByID(c echo.Context) error {
 		"TaskCompletion": "default",
 		"TaskNotes":      "default",
 	}
+	regular.RegularSession.RegularState.PageData = h.extractTaskGoal(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
@@ -286,7 +288,7 @@ func (h *OpusHandlerImpl) AddTaskGoal(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	if err := h.db.Preload("TaskGoals", "status = ?", 0).First(&task, req.TaskID).Error; err != nil {
+	if err := h.db.Preload("TaskGoals").First(&task, req.TaskID).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
@@ -306,6 +308,7 @@ func (h *OpusHandlerImpl) AddTaskGoal(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 	regular.RegularSession.RegularState.PageData["Task"] = task
+	regular.RegularSession.RegularState.PageData = h.extractTaskGoal(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
@@ -351,7 +354,7 @@ func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 		regular.RegularSession.RegularState.PageData["TaskNotes"] = req.State
 	}
 
-	if err := h.db.Preload("TaskGoals", "status = ?", 0).First(&task, req.ID).Error; err != nil {
+	if err := h.db.Preload("TaskGoals").First(&task, req.ID).Error; err != nil {
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Task Error",
@@ -360,6 +363,7 @@ func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 	regular.RegularSession.RegularState.PageData["Task"] = task
+	regular.RegularSession.RegularState.PageData = h.extractTaskGoal(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
@@ -442,7 +446,7 @@ func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	if err := h.db.Preload("TaskGoals", "status = ?", 0).First(&task, req.ID).Error; err != nil {
+	if err := h.db.Preload("TaskGoals").First(&task, req.ID).Error; err != nil {
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Task Error",
@@ -453,6 +457,7 @@ func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 
 	regular.RegularSession.RegularState.PageData["Task"] = task
 	regular.RegularSession.RegularState.PageData["TaskDetail"] = "default"
+	regular.RegularSession.RegularState.PageData = h.extractTaskGoal(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
@@ -564,7 +569,7 @@ func (h *OpusHandlerImpl) UpdateGoal(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	if err := h.db.Preload("TaskGoals", "status = ?", 0).First(&task, req.TaskID).Error; err != nil {
+	if err := h.db.Preload("TaskGoals").First(&task, req.TaskID).Error; err != nil {
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Task Error",
@@ -574,6 +579,7 @@ func (h *OpusHandlerImpl) UpdateGoal(c echo.Context) error {
 	}
 	regular.RegularSession.RegularState.PageData["Task"] = task
 	regular.RegularSession.RegularState.PageData["TaskGoals"] = "default"
+	regular.RegularSession.RegularState.PageData = h.extractTaskGoal(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
@@ -670,6 +676,43 @@ func (h *OpusHandlerImpl) convertToDatabyte(obj interface{}) (result []byte) {
 
 func (h *OpusHandlerImpl) generatePreloadTask(depth int) string {
 	return fmt.Sprintf("Tasks%s", strings.Repeat(".ChildrenTasks", depth))
+}
+
+func (h *OpusHandlerImpl) extractTaskGoal(data map[string]interface{}, task *models.Task) map[string]interface{} {
+	var (
+		goals        []models.TaskGoal
+		goalProgress []bool
+		goalDone     = 0
+		goalNotDone  = 0
+	)
+
+	for _, goal := range task.TaskGoals {
+		if goal.Status == constants.GoalStatusDone {
+			goalDone += 1
+			goalProgress = append(goalProgress, true)
+		}
+	}
+
+	for _, goal := range task.TaskGoals {
+		if goal.Status == constants.GoalStatusNotDone {
+			goalNotDone += 1
+			goalProgress = append(goalProgress, false)
+		}
+	}
+
+	for _, goal := range task.TaskGoals {
+		if goal.Status == constants.GoalStatusNotDone {
+			goals = append(goals, goal)
+		}
+	}
+
+	task.TaskGoals = goals
+	data["Task"] = task
+	data["GoalProgress"] = goalProgress
+	data["GoalDone"] = goalDone
+	data["GoalNotDone"] = goalNotDone
+	data["GoalCount"] = goalDone + goalNotDone
+	return data
 }
 
 func (h *OpusHandlerImpl) extractTaskDate(data map[string]interface{}, task *models.Task) map[string]interface{} {

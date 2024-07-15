@@ -85,17 +85,19 @@
     <div class="p-4 col-span-1 row-span-1 bg-stone-200">
         {{ if eq .PageData.TaskCompletion "default" }}
         <h2 class="text-2xl lg:text-3xl xl:text-4xl">{{ .PageData.Task.Title }}</h2>
-        <h3 class="text-lg lg:text-xl xl:text-2xl mt-5">Goals to Accomplish</h3>
+        <div class="flex justify-between">
+            <h3 class="text-lg lg:text-xl xl:text-2xl mt-5">Goals to Accomplish</h3>
+            <h3 class="text-lg lg:text-xl xl:text-2xl mt-5">{{ .PageData.GoalDone }}/{{ .PageData.GoalCount }}</h3>
+        </div>
         <div class="w-full flex flex-col">
             <div class="w-full h-8 overflow-hidden flex gap-1 justify-between rounded-full bg-stone-800 border-4 border-stone-800">
-                <!-- Range over list of Goals -->
-                <!-- Conditional bg Color based on completion status -->
-                <div class="flex-1 flex-grow bg-stone-600"></div>
-                <div class="flex-1 flex-grow bg-stone-600"></div>
-                <div class="flex-1 flex-grow bg-stone-300"></div>
-                <div class="flex-1 flex-grow bg-stone-300"></div>
-                <div class="flex-1 flex-grow bg-stone-300"></div>
-                <div class="flex-1 flex-grow bg-stone-300"></div>
+                {{ range .PageData.GoalProgress }}
+                    {{ if . }}
+                        <div class="flex-1 flex-grow bg-stone-600"></div>
+                    {{ else }}
+                        <div class="flex-1 flex-grow bg-stone-300"></div>
+                    {{ end }}
+                {{ end }}
             </div>
         </div>
         <h3 class="text-lg lg:text-xl xl:text-2xl mt-5">Days before Expected End Date</h3>
