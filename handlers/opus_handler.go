@@ -94,7 +94,7 @@ func (h *OpusHandlerImpl) GetTaskByID(c echo.Context) error {
 
 	id := c.Param("id")
 
-	if err := h.db.Preload("TaskGoals", "status = ?", "0").First(&task, id).Error; err != nil {
+	if err := h.db.Preload("TaskGoals").First(&task, id).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),

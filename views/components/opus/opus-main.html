@@ -6,7 +6,7 @@
         {{ if eq .PageData.TaskDetail "default" }}
         <div class="w-full h-full flex flex-col gap-2">
             <h2 class="text-2xl lg:text-3xl xl:text-4xl">Details</h2>
-            <p>{{ .PageData.Task.Details }}</p>
+            <textarea class="h-full bg-transparent resize-none text-justify overflow-hidden" disabled aria-disabled="true">{{ .PageData.Task.Details }}</textarea>
             <div class="flex-1"></div>
             <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "detail", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Input Details</button>
         </div>
