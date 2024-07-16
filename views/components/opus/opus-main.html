@@ -38,7 +38,10 @@
                     <div class="flex justify-between items-center">
                         {{ .GoalText }}
                         <div class="flex gap-4">
-                            <button class="text-stone-600 hover:text-emerald-600" hx-put="/r/opus/goal" hx-vals='{ "task_id": "{{ $pageData.Task.ID }}", "id": "{{ .ID }}", "updating": "done"}' hx-target="#opus-main" hx-swap="outerHTML" hx-on:click="event.stopPropagation()">
+                            <button class="text-stone-600 hover:text-sky-600"  hx-put="/r/opus/state" hx-vals='{ "id": "{{ $pageData.Task.ID }}", "section": "goals", "state": "edit", "data": "{{ .ID }}" }' hx-target="#opus-main" hx-swap="outerHTML">
+                                <i class="fa-solid fa-pencil fa-2xl"></i>
+                            </button>
+                            <button class="text-stone-600 hover:text-emerald-600" hx-put="/r/opus/goal" hx-vals='{ "task_id": "{{ $pageData.Task.ID }}", "id": "{{ .ID }}", "updating": "done"}' hx-target="#opus-main" hx-swap="outerHTML">
                                 <i class="fa-solid fa-check fa-2xl"></i>
                             </button>
                             <button class="text-stone-600 hover:text-rose-600" hx-put="/r/opus/goal" hx-vals='{ "task_id": "{{ $pageData.Task.ID }}", "id": "{{ .ID }}", "updating": "delete"}' hx-target="#opus-main" hx-swap="outerHTML">
@@ -49,7 +52,7 @@
                 </li>
                 {{ end }}
             </ul>
-            <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "goals", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Input Goals</button>
+            <button class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "goals", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" type="button">Input Goals</button>
         </div>
         {{ else if eq .PageData.TaskGoals "add" }}
         <form class="w-full h-full flex flex-col gap-2">
@@ -69,14 +72,14 @@
         <form class="w-full h-full flex flex-col gap-2">
             <h2 class="text-2xl lg:text-3xl xl:text-4xl">Edit Goal</h2>
             <label for="goal_text">Goals</label>
-            <textarea class="p-2 rounded-md resize-none" rows="5" name="goal_text" id="goal_text"></textarea>
+            <textarea class="p-2 rounded-md resize-none" rows="5" name="goal_text" id="goal_text">{{ .PageData.TaskGoal.EditText}}</textarea>
             <label for="start_date_goal">Start Date</label>
-            <input class="p-2 rounded-md" type="datetime-local" name="start_date_goal" id="start_date_goal">
+            <input class="p-2 rounded-md" type="datetime-local" name="start_date_goal" id="start_date_goal" value="{{ .PageData.TaskGoal.EditStartDate }}">
             <label for="end_date_goal">End Date</label>
-            <input class="p-2 rounded-md" type="datetime-local" name="end_date_goal" id="end_date_goal">
+            <input class="p-2 rounded-md" type="datetime-local" name="end_date_goal" id="end_date_goal" value="{{ .PageData.TaskGoal.EditEndDate }}">
             <div class="w-full mt-auto flex justify-between">
                 <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "goals", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Cancel</button>
-                <button hx-post="/r/opus/task-goal" hx-vals='{ "task_id": "{{ .PageData.Task.ID }}"}' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
+                <button hx-put="/r/opus/goal" hx-vals='{ "task_id": "{{ .PageData.Task.ID }}", "id": "{{ .PageData.TaskGoal.EditID }}", "updating": "edit"}' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Update</button>
             </div>
         </form>
         {{ end }}

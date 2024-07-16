@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -343,17 +344,6 @@ func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	switch req.Section {
-	case "detail":
-		regular.RegularSession.RegularState.PageData["TaskDetail"] = req.State
-	case "goals":
-		regular.RegularSession.RegularState.PageData["TaskGoals"] = req.State
-	case "completion":
-		regular.RegularSession.RegularState.PageData["TaskCompletion"] = req.State
-	case "notes":
-		regular.RegularSession.RegularState.PageData["TaskNotes"] = req.State
-	}
-
 	if err := h.db.Preload("TaskGoals").First(&task, req.ID).Error; err != nil {
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
@@ -365,6 +355,22 @@ func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 	regular.RegularSession.RegularState.PageData["Task"] = task
 	regular.RegularSession.RegularState.PageData = h.extractTaskGoal(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
+
+	switch req.Section {
+	case "detail":
+		regular.RegularSession.RegularState.PageData["TaskDetail"] = req.State
+	case "goals":
+		regular.RegularSession.RegularState.PageData["TaskGoals"] = req.State
+		if req.State == "edit" {
+			taskID, _ := strconv.Atoi(req.Data)
+			regular.RegularSession.RegularState.PageData = h.extractTaskGoalData(regular.RegularSession.RegularState.PageData, task.TaskGoals, taskID)
+		}
+	case "completion":
+		regular.RegularSession.RegularState.PageData["TaskCompletion"] = req.State
+	case "notes":
+		regular.RegularSession.RegularState.PageData["TaskNotes"] = req.State
+	}
+
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
 
 	if err := h.saveState(c, &regular); err != nil {
@@ -734,5 +740,27 @@ func (h *OpusHandlerImpl) extractTaskDate(data map[string]interface{}, task *mod
 	}
 
 	data["DayProgress"] = dayProgress
+	return data
+}
+
+func (h *OpusHandlerImpl) extractTaskGoalData(data map[string]interface{}, taskGoals []models.TaskGoal, taskID int) map[string]interface{} {
+	var (
+		taskGoal models.TaskGoal
+	)
+
+	for _, goal := range taskGoals {
+		if goal.ID == uint(taskID) {
+			taskGoal = goal
+		}
+	}
+
+	editTaskGoalMap := map[string]interface{}{
+		"EditID":        taskGoal.ID,
+		"EditText":      taskGoal.GoalText,
+		"EditStartDate": taskGoal.StartDate.Format("2006-01-02T15:04"),
+		"EditEndDate":   taskGoal.EndDate.Format("2006-01-02T15:04"),
+	}
+
+	data["TaskGoal"] = editTaskGoalMap
 	return data
 }
