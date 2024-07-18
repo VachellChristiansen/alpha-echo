@@ -18,20 +18,22 @@ import (
 )
 
 type Handler struct {
-	db           *gorm.DB
-	validate     *validator.Validate
-	logger       map[string]*log.Logger
-	IndexHandler IndexHandler
-	OpusHandler  OpusHandler
+	db             *gorm.DB
+	validate       *validator.Validate
+	logger         map[string]*log.Logger
+	IndexHandler   IndexHandler
+	OpusHandler    OpusHandler
+	ChrysusHandler ChrysusHandler
 }
 
 func NewHandler(db *gorm.DB, validate *validator.Validate, logger map[string]*log.Logger) Handler {
 	return Handler{
-		db:           db,
-		validate:     validate,
-		logger:       logger,
-		IndexHandler: NewIndexHandler(db, validate, logger),
-		OpusHandler:  NewOpusHandler(db, validate, logger),
+		db:             db,
+		validate:       validate,
+		logger:         logger,
+		IndexHandler:   NewIndexHandler(db, validate, logger),
+		OpusHandler:    NewOpusHandler(db, validate, logger),
+		ChrysusHandler: NewChrysusHandler(db, validate, logger),
 	}
 }
 

@@ -133,6 +133,11 @@ func main() {
 			opus.DELETE("/category/:id", h.OpusHandler.DeleteCategory)
 			opus.DELETE("/task/:id", h.OpusHandler.DeleteTask)
 		}
+
+		chrysus := regular.Group("/chrysus")
+		{
+			chrysus.GET("/", h.ChrysusHandler.Default)
+		}
 	}
 
 	e.Start(os.Getenv("APP_PORT"))

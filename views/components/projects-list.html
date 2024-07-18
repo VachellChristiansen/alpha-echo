@@ -3,11 +3,11 @@
     <section id="personal-projects" class="w-full flex flex-col gap-2">
         <h2 class="text-4xl">Personal Projects</h2>
         <div class="w-full h-1 bg-amber-900"></div>
-        <div class="block box-content max-h-80 overflow-x-scroll overflow-y-hidden no-scrollbar whitespace-nowrap">
+        <div class="block box-content max-h-[22.5rem] overflow-x-scroll overflow-y-hidden no-scrollbar whitespace-nowrap">
             {{ range .PageData.Projects }}
-                <div class="w-96 h-80 mr-2 border-2 border-stone-300 inline-block align-top last:mr-0">
+                <div class="w-96 h-[22.5rem] mr-2 border-2 border-stone-300 inline-block align-top last:mr-0">
                     <div class="w-full h-full p-4 flex flex-col gap-4">
-                        <div class="relative z-10 w-full h-3/4 bg-stone-200 overflow-hidden group">
+                        <div class="relative z-10 w-full h-3/5 bg-stone-200 overflow-hidden group">
                             <div class="absolute z-0 -left-16 top-0 group-hover:top-32 group-hover:left-32 w-72 aspect-square transition-all duration-700 border-4 border-dashed border-stone-800 animate-spin rounded-full"></div>
                             <div class="absolute z-0 -left-8 top-24 group-hover:-top-32 group-hover:left-24 w-72 aspect-square transition-all duration-700 border-4 border-dotted border-stone-800 animate-spin rounded-full"></div>
                             <div class="absolute z-0 -right-12 top-12 group-hover:right-64 w-72 aspect-square transition-all duration-700 border-4 border-double border-stone-800 animate-spin rounded-full"></div>
@@ -16,12 +16,12 @@
                                 Go To Project
                             </button>
                         </div>
-                        <div class="w-full h-1/4 flex justify-between">
-                            <div>
-                                {{ .Name }} <br>
-                                {{ .Description }}<br>
+                        <div class="w-full h-2/5 flex gap-2 justify-between">
+                            <div class="w-3/5">
+                                <h4 class="text-xl font-bold">{{ .Name }}</h4> <br>
+                                <p class="text-wrap">{{ .Description }}</p> <br>
                             </div>
-                            <div>
+                            <div class="w-2/5 flex flex-col gap-2 items-end">
                             {{ range .ProjectTags }}
                                 <div class="inline p-1 text-sm bg-{{ .Color }}-100 border-2 border-{{ .Color }}-300">{{ .Name }}</div>
                             {{ end }}

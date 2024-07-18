@@ -140,14 +140,14 @@ func projectSeeder(db *gorm.DB, logger Logger) {
 		{
 			Name:            "Chrysus",
 			Description:     "Finance Management tool.",
-			PagePath:        "/chrysus",
+			PagePath:        "/r/chrysus",
 			ExternalPath:    fmt.Sprintf("%s/chrysus", os.Getenv("ML_URL")),
 			RegularAccessID: 4,
 		},
 		{
 			Name:            "Elpida",
 			Description:     "Finding more efficient means to run a program.",
-			PagePath:        "/elpida",
+			PagePath:        "/r/elpida",
 			ExternalPath:    fmt.Sprintf("%s/elpida", os.Getenv("ML_URL")),
 			RegularAccessID: 4,
 		},

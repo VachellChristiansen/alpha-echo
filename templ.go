@@ -32,6 +32,7 @@ func newTemplate() *Templ {
 	t := template.Must(template.New("").Funcs(funcMap).ParseGlob("views/*.html"))
 	t = template.Must(t.ParseGlob("views/components/*.html"))
 	t = template.Must(t.ParseGlob("views/components/opus/*.html"))
+	t = template.Must(t.ParseGlob("views/components/chrysus/*.html"))
 
 	return &Templ{
 		templ: t,
