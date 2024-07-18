@@ -1,0 +1,66 @@
+{{ define "vacuus" }}
+<div id="vacuus" class="w-full h-full bg-neutral-900">
+    <button hx-get="/projects" hx-target="body" class="p-4 bg-stone-300 hover:brightness-75 active:brightness-50">
+        Back
+    </button>
+    <script>
+        class MovableObject {
+            constructor(element, xMove, yMove) {
+                this.element = element;
+                this.xPos = Math.random() * 1500;
+                this.yPos = Math.random() * 600;
+                this.goLeft = Math.random() > 0.5;
+                this.goUp = Math.random() > 0.5;
+                this.xMove = xMove;
+                this.yMove = yMove;
+            }
+
+            move() {
+                if (this.element.offsetWidth + this.element.offsetLeft > window.innerWidth) {
+                    this.goLeft = true;
+                } else if (this.element.offsetLeft < 0) {
+                    this.goLeft = false;
+                }
+
+                if (this.element.offsetHeight + this.element.offsetTop > window.innerHeight) {
+                    this.goUp = true;
+                } else if (this.element.offsetTop < 0) {
+                    this.goUp = false;
+                }
+
+                this.xPos = this.goLeft ? this.xPos - this.xMove : this.xPos + this.xMove;
+                this.yPos = this.goUp ? this.yPos - this.yMove : this.yPos + this.yMove;
+                console.log(this.yPos, this.xPos)
+
+                this.element.style.left = `${this.xPos}px`;
+                this.element.style.top = `${this.yPos}px`;
+            }
+        }
+
+        function createMovableObject(container, xMove, yMove) {
+            const obj = document.createElement('div');
+            obj.classList.add('obj');
+            obj.classList.add("bg-neutral-200")
+            obj.classList.add("bg-opacity-20")
+            obj.classList.add("absolute")
+            obj.classList.add("rounded-full")
+            obj.style.width = "250px"
+            obj.style.height = "250px"
+            container.appendChild(obj);
+            return new MovableObject(obj, xMove, yMove);
+        }
+
+        const container = document.getElementById('vacuus');
+        const objects = [];
+        for (let i = 0; i < 7; i++) {
+            const xMove = Math.random() * (10 - 5) + 5
+            const yMove = Math.random() * (10 - 5) + 5
+            objects.push(createMovableObject(container, xMove, yMove))
+        }
+
+        setInterval(() => {
+            objects.forEach(obj => obj.move());
+        }, 25);
+    </script>
+</div>
+{{ end }}

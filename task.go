@@ -126,7 +126,7 @@ func projectSeeder(db *gorm.DB, logger Logger) {
 		{
 			Name:            "Proximus",
 			Description:     "Machine learning projects.",
-			PagePath:        "/proximus",
+			PagePath:        "/a/proximus",
 			ExternalPath:    fmt.Sprintf("%s/proximus", os.Getenv("ML_URL")),
 			RegularAccessID: 1,
 		},
@@ -151,12 +151,20 @@ func projectSeeder(db *gorm.DB, logger Logger) {
 			ExternalPath:    fmt.Sprintf("%s/elpida", os.Getenv("ML_URL")),
 			RegularAccessID: 4,
 		},
+		{
+			Name:            "Vacuus",
+			Description:     "Sandbox of whatever.",
+			PagePath:        "/r/vacuus",
+			ExternalPath:    fmt.Sprintf("%s/vacuus", os.Getenv("ML_URL")),
+			RegularAccessID: 4,
+		},
 	}
 	tags := []string{
 		"ML,Tools",
 		"Tools",
 		"Tools",
 		"Tools,Experimental",
+		"Experimental",
 	}
 
 	tx := db.Begin()

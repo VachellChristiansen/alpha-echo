@@ -24,6 +24,7 @@ type Handler struct {
 	IndexHandler   IndexHandler
 	OpusHandler    OpusHandler
 	ChrysusHandler ChrysusHandler
+	VacuusHandler  VacuusHandler
 }
 
 func NewHandler(db *gorm.DB, validate *validator.Validate, logger map[string]*log.Logger) Handler {
@@ -34,6 +35,7 @@ func NewHandler(db *gorm.DB, validate *validator.Validate, logger map[string]*lo
 		IndexHandler:   NewIndexHandler(db, validate, logger),
 		OpusHandler:    NewOpusHandler(db, validate, logger),
 		ChrysusHandler: NewChrysusHandler(db, validate, logger),
+		VacuusHandler:  NewVacuusHandler(db, validate, logger),
 	}
 }
 

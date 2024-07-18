@@ -1,5 +1,5 @@
 {{ define "opus" }}
-<div id="opus" x-data="{ Opus: {} }" x-init="init()" class="w-full h-full flex">
+<div id="opus" x-data="{ Opus: {} }" x-init="initOpus()" class="w-full h-full flex">
     <aside class="max-w-[240px] md:max-w-[270px] lg:max-w-[300px] xl:max-w-[350px] w-full flex flex-col bg-stone-100 border-r-2 border-stone-600">
         <div class="w-full py-4 flex justify-center items-center font-montserrat font-extrabold text-xl md:text-2xl lg:text-4xl xl:text-6xl border-b-2 border-stone-600">OPUS</div>
         <button hx-get="/projects" hx-target="body" class="p-4 bg-stone-300 hover:brightness-75 active:brightness-50">
@@ -29,7 +29,7 @@
     </script>
     {{ end }}
     <script>
-        function init() {
+        function initOpus() {
             return Alpine.store("Opus", {
                 addCategoryState: false,
                 categories: {},

@@ -138,6 +138,11 @@ func main() {
 		{
 			chrysus.GET("/", h.ChrysusHandler.Default)
 		}
+
+		vacuus := regular.Group("/vacuus")
+		{
+			vacuus.GET("/", h.VacuusHandler.Default)
+		}
 	}
 
 	e.Start(os.Getenv("APP_PORT"))
