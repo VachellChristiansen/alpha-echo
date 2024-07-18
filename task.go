@@ -144,11 +144,19 @@ func projectSeeder(db *gorm.DB, logger Logger) {
 			ExternalPath:    fmt.Sprintf("%s/chrysus", os.Getenv("ML_URL")),
 			RegularAccessID: 4,
 		},
+		{
+			Name:            "Elpida",
+			Description:     "Finding more efficient means to run a program.",
+			PagePath:        "/elpida",
+			ExternalPath:    fmt.Sprintf("%s/elpida", os.Getenv("ML_URL")),
+			RegularAccessID: 4,
+		},
 	}
 	tags := []string{
 		"ML,Tools",
 		"Tools",
 		"Tools",
+		"Tools,Experimental",
 	}
 
 	tx := db.Begin()
@@ -185,6 +193,10 @@ func projectTagSeeder(db *gorm.DB, logger Logger) {
 		{
 			Name:  "Games",
 			Color: "emerald",
+		},
+		{
+			Name:  "Experimental",
+			Color: "sky",
 		},
 	}
 

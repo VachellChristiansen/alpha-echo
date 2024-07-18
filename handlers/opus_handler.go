@@ -462,7 +462,11 @@ func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 	}
 
 	regular.RegularSession.RegularState.PageData["Task"] = task
-	regular.RegularSession.RegularState.PageData["TaskDetail"] = "default"
+	if req.Updating == "details" {
+		regular.RegularSession.RegularState.PageData["TaskDetail"] = "default"
+	} else if req.Updating == "notes" {
+		regular.RegularSession.RegularState.PageData["TaskNotes"] = "default"
+	}
 	regular.RegularSession.RegularState.PageData = h.extractTaskGoal(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
