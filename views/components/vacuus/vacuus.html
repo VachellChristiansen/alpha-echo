@@ -4,41 +4,49 @@
         Back
     </button>
     <script>
-        class MovableObject {
-            constructor(element, xMove, yMove) {
-                this.element = element;
-                this.xPos = Math.random() * 1500;
-                this.yPos = Math.random() * 600;
-                this.goLeft = Math.random() > 0.5;
-                this.goUp = Math.random() > 0.5;
-                this.xMove = xMove;
-                this.yMove = yMove;
-            }
-
-            move() {
-                if (this.element.offsetWidth + this.element.offsetLeft > window.innerWidth) {
-                    this.goLeft = true;
-                } else if (this.element.offsetLeft < 0) {
-                    this.goLeft = false;
+        function createClass() {
+            return class MovableObject {
+                constructor(element, xMove, yMove) {
+                    this.element = element;
+                    this.xPos = Math.random() * 1500;
+                    this.yPos = Math.random() * 600;
+                    this.goLeft = Math.random() > 0.5;
+                    this.goUp = Math.random() > 0.5;
+                    this.xMove = xMove;
+                    this.yMove = yMove;
                 }
 
-                if (this.element.offsetHeight + this.element.offsetTop > window.innerHeight) {
-                    this.goUp = true;
-                } else if (this.element.offsetTop < 0) {
-                    this.goUp = false;
+                move() {
+                    if (this.element.offsetWidth + this.element.offsetLeft > window.innerWidth) {
+                        this.goLeft = true;
+                    } else if (this.element.offsetLeft < 0) {
+                        this.goLeft = false;
+                    }
+
+                    if (this.element.offsetHeight + this.element.offsetTop > window.innerHeight) {
+                        this.goUp = true;
+                    } else if (this.element.offsetTop < 0) {
+                        this.goUp = false;
+                    }
+
+                    this.xPos = this.goLeft ? this.xPos - this.xMove : this.xPos + this.xMove;
+                    this.yPos = this.goUp ? this.yPos - this.yMove : this.yPos + this.yMove;
+
+                    this.element.style.left = `${this.xPos}px`;
+                    this.element.style.top = `${this.yPos}px`;
                 }
 
-                this.xPos = this.goLeft ? this.xPos - this.xMove : this.xPos + this.xMove;
-                this.yPos = this.goUp ? this.yPos - this.yMove : this.yPos + this.yMove;
-                console.log(this.yPos, this.xPos)
-
-                this.element.style.left = `${this.xPos}px`;
-                this.element.style.top = `${this.yPos}px`;
+                remove() {
+                    clearInterval(this.intervalId);
+                    this.element.remove()
+                }
             }
         }
 
-        function createMovableObject(container, xMove, yMove) {
+        function createMovableObject(container, xMove, yMove, id) {
+            const MovableObject = createClass()
             const obj = document.createElement('div');
+            obj.id = "Bambang"+id
             obj.classList.add('obj');
             obj.classList.add("bg-neutral-200")
             obj.classList.add("bg-opacity-20")
@@ -50,17 +58,43 @@
             return new MovableObject(obj, xMove, yMove);
         }
 
-        const container = document.getElementById('vacuus');
-        const objects = [];
-        for (let i = 0; i < 7; i++) {
-            const xMove = Math.random() * (10 - 5) + 5
-            const yMove = Math.random() * (10 - 5) + 5
-            objects.push(createMovableObject(container, xMove, yMove))
-        }
+        function initialize() {
+            const container = document.getElementById('vacuus');
+            let objects = [];
+            for (let i = 0; i < 5; i++) {
+                if (container.querySelector("#Bambang"+i)) {
+                    return
+                }
+                const xMove = Math.random() * (10 - 5) + 5
+                const yMove = Math.random() * (10 - 5) + 5
+                let object = createMovableObject(container, xMove, yMove, i)
+                objects.push(object)
+                object.intervalId = setInterval(() => object.move(), 10)
+            }
 
-        setInterval(() => {
-            objects.forEach(obj => obj.move());
-        }, 25);
+            const observer = new MutationObserver((mutationsList, observer) => {
+                for (const mutation of mutationsList) {
+                    if (mutation.removedNodes.length > 0) {
+                        for (const node of mutation.removedNodes) {
+                            if (container) {
+                                if (node === container || container.contains(node)) {
+                                    objects.forEach(obj => obj.remove());
+                                    objects = []
+                                    observer.disconnect();
+                                    break;
+                                }
+                            } else {
+                                return
+                            }
+                        }
+                    }
+                }
+            });
+            
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+        
+        initialize()
     </script>
 </div>
 {{ end }}
