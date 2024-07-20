@@ -1,8 +1,107 @@
 {{ define "vacuus" }}
-<div id="vacuus" class="w-full h-full bg-neutral-900">
-    <button hx-get="/projects" hx-target="body" class="p-4 bg-stone-300 hover:brightness-75 active:brightness-50">
-        Back
-    </button>
+<div id="vacuus" class="w-full h-full bg-neutral-900 text-neutral-300">
+    <div id="menu" class="absolute top-1/2 -translate-y-1/2 w-[150px] h-[500px] p-4 hidden flex-col gap-2 border-2 border-neutral-300 rounded-xl">
+        <button hx-get="/projects" hx-target="body" class="text-start group">
+            <span class="underline underline-offset-4 group-hover:font-bold">Back</span>
+        </button>
+        <div class="flex-1"></div>
+        <button hx-on:click="unshowMenu()" class="text-start group">
+            <span class="underline underline-offset-4 group-hover:font-bold">Minimize</span>
+        </button>
+    </div>
+
+    <div id="menu_trigger" class="absolute left-0 w-2 h-full bg-neutral-100 bg-opacity-10">
+
+    </div>
+    
+    <div id="menu_call" class="absolute top-1/2 -translate-y-1/2 w-20 h-20 hidden justify-center items-center bg-neutral-300 rounded-full">
+        <i class="fa-solid fa-arrow-left fa-2xl animate-pulse text-neutral-900"></i>
+    </div>
+
+    <script>
+        function unshowMenu() {
+            const menu = document.getElementById("menu")
+            const menuTrigger = document.getElementById("menu_trigger")
+
+            let menuLeft = 40
+            let menuSet = false
+
+            menu.style.left = `${menuLeft}px`
+
+            const menuInterval = setInterval(() => {
+                if (menuLeft > -250 ) {
+                    menuLeft -= 5
+                    menu.style.left = `${menuLeft}px`
+                } else {
+                    menu.classList.remove("flex")
+                    menu.classList.add("hidden")
+                    menuTrigger.classList.remove("hidden")
+                    clearInterval(menuInterval)
+                }
+            }, 5);
+
+        }
+
+        function showMenu() {
+            const menu = document.getElementById("menu")
+            const menuCall = document.getElementById("menu_call")
+
+            let menuLeft = -200
+            let menuCallLeft = 40
+            let menuSet = false
+            let menuCallSet = false
+
+            menu.classList.remove("hidden")
+            menu.style.left = `${menuLeft}px`
+            menuCall.style.left = `${menuCallLeft}px`
+            menu.classList.add("flex")
+
+            const menuInterval = setInterval(() => {
+                if (menuLeft < 40) {
+                    menuLeft += 5
+                    menu.style.left = `${menuLeft}px`
+                } else {
+                    menuSet = true
+                }
+
+                if (menuCallLeft > 0 - menuCall.offsetWidth) {
+                    menuCallLeft -= 5
+                    menuCall.style.left = `${menuCallLeft}px`
+                } else {
+                    menuCallSet = true
+                }
+
+                if (menuSet && menuCallSet) {
+                    clearInterval(menuInterval)
+                }
+            }, 5);
+        }
+
+        function showMenuCall() {
+            const menuCall = document.getElementById("menu_call")
+            const menuTrigger = document.getElementById("menu_trigger")
+
+            let menuCallLeft = -100
+
+            menuTrigger.classList.add("hidden")
+            menuCall.style.left = `${menuCallLeft}px`
+            menuCall.classList.remove("hidden")
+            menuCall.classList.add("flex")
+
+            const menuInterval = setInterval(() => {
+                if (menuCallLeft < 40) {
+                    menuCallLeft += 5
+                    menuCall.style.left = `${menuCallLeft}px`
+                } else {
+                    clearInterval(menuInterval)
+                }
+            }, 5);
+        }
+
+        document.getElementById("menu_call").addEventListener("click", showMenu)
+        document.getElementById("menu_trigger").addEventListener("mouseenter", showMenuCall)
+    </script>
+
     <script>
         function createClass() {
             return class MovableObject {

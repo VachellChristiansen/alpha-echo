@@ -8,7 +8,7 @@
             <h2 class="text-2xl lg:text-3xl xl:text-4xl">Details</h2>
             <textarea class="h-full bg-transparent resize-none text-justify overflow-hidden" disabled aria-disabled="true">{{ .PageData.Task.Details }}</textarea>
             <div class="flex-1"></div>
-            <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "detail", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Input Details</button>
+            <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "detail", "state": "add" }' hx-target="#opus-main" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Input Details</button>
         </div>
         {{ else if eq .PageData.TaskDetail "add" }}
         <form class="w-full h-full flex flex-col gap-2">
@@ -20,8 +20,8 @@
             <label for="end_date">End Date</label>
             <input class="p-2 rounded-md" type="datetime-local" name="end_date" id="end_date" value="{{ .PageData.EndDate }}">
             <div class="w-full mt-auto flex justify-between">
-                <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "detail", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Cancel</button>
-                <button hx-put="/r/opus/task" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "updating": "details" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
+                <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "detail", "state": "default" }' hx-target="#opus-main" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Cancel</button>
+                <button hx-put="/r/opus/task" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "updating": "details" }' hx-target="#opus-main" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
             </div>
         </form>
         {{ end }}
@@ -38,13 +38,13 @@
                     <div class="flex justify-between items-center">
                         {{ .GoalText }}
                         <div class="flex gap-4">
-                            <button class="text-stone-600 hover:text-sky-600"  hx-put="/r/opus/state" hx-vals='{ "id": "{{ $pageData.Task.ID }}", "section": "goals", "state": "edit", "data": "{{ .ID }}" }' hx-target="#opus-main" hx-swap="outerHTML">
+                            <button class="text-stone-600 hover:text-sky-600"  hx-put="/r/opus/state" hx-vals='{ "id": "{{ $pageData.Task.ID }}", "section": "goals", "state": "edit", "data": "{{ .ID }}" }' hx-target="#opus-main">
                                 <i class="fa-solid fa-pencil fa-2xl"></i>
                             </button>
-                            <button class="text-stone-600 hover:text-emerald-600" hx-put="/r/opus/goal" hx-vals='{ "task_id": "{{ $pageData.Task.ID }}", "id": "{{ .ID }}", "updating": "done"}' hx-target="#opus-main" hx-swap="outerHTML">
+                            <button class="text-stone-600 hover:text-emerald-600" hx-put="/r/opus/goal" hx-vals='{ "task_id": "{{ $pageData.Task.ID }}", "id": "{{ .ID }}", "updating": "done"}' hx-target="#opus-main">
                                 <i class="fa-solid fa-check fa-2xl"></i>
                             </button>
-                            <button class="text-stone-600 hover:text-rose-600" hx-put="/r/opus/goal" hx-vals='{ "task_id": "{{ $pageData.Task.ID }}", "id": "{{ .ID }}", "updating": "delete"}' hx-target="#opus-main" hx-swap="outerHTML">
+                            <button class="text-stone-600 hover:text-rose-600" hx-put="/r/opus/goal" hx-vals='{ "task_id": "{{ $pageData.Task.ID }}", "id": "{{ .ID }}", "updating": "delete"}' hx-target="#opus-main">
                                 <i class="fa-solid fa-trash fa-2xl"></i>
                             </button>
                         </div>
@@ -52,7 +52,7 @@
                 </li>
                 {{ end }}
             </ul>
-            <button class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "goals", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" type="button">Input Goals</button>
+            <button class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "goals", "state": "add" }' hx-target="#opus-main" type="button">Input Goals</button>
         </div>
         {{ else if eq .PageData.TaskGoals "add" }}
         <form class="w-full h-full flex flex-col gap-2">
@@ -64,8 +64,8 @@
             <label for="end_date_goal">End Date</label>
             <input class="p-2 rounded-md" type="datetime-local" name="end_date_goal" id="end_date_goal">
             <div class="w-full mt-auto flex justify-between">
-                <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "goals", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Cancel</button>
-                <button hx-post="/r/opus/task-goal" hx-vals='{ "task_id": "{{ .PageData.Task.ID }}"}' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
+                <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "goals", "state": "default" }' hx-target="#opus-main" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Cancel</button>
+                <button hx-post="/r/opus/task-goal" hx-vals='{ "task_id": "{{ .PageData.Task.ID }}"}' hx-target="#opus-main" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
             </div>
         </form>
         {{ else if eq .PageData.TaskGoals "edit" }}
@@ -78,8 +78,8 @@
             <label for="end_date_goal">End Date</label>
             <input class="p-2 rounded-md" type="datetime-local" name="end_date_goal" id="end_date_goal" value="{{ .PageData.TaskGoal.EditEndDate }}">
             <div class="w-full mt-auto flex justify-between">
-                <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "goals", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Cancel</button>
-                <button hx-put="/r/opus/goal" hx-vals='{ "task_id": "{{ .PageData.Task.ID }}", "id": "{{ .PageData.TaskGoal.EditID }}", "updating": "edit" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Update</button>
+                <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "goals", "state": "default" }' hx-target="#opus-main" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Cancel</button>
+                <button hx-put="/r/opus/goal" hx-vals='{ "task_id": "{{ .PageData.Task.ID }}", "id": "{{ .PageData.TaskGoal.EditID }}", "updating": "edit" }' hx-target="#opus-main" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Update</button>
             </div>
         </form>
         {{ end }}
@@ -128,7 +128,7 @@
             <h2 class="text-2xl lg:text-3xl xl:text-4xl">Details</h2>
             <textarea class="h-full bg-transparent resize-none text-justify overflow-hidden" disabled aria-disabled="true">{{ .PageData.Task.Notes }}</textarea>
             <div class="flex-1"></div>
-            <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "notes", "state": "add" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Input Notes</button>
+            <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "notes", "state": "add" }' hx-target="#opus-main" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Input Notes</button>
         </div>
         {{ else if eq .PageData.TaskNotes "add" }}
         <form class="w-full h-full flex flex-col gap-2">
@@ -136,8 +136,8 @@
             <label for="notes">Notes</label>
             <textarea class="p-2 rounded-md resize-none" rows="10" name="notes" id="notes">{{ .PageData.Task.Notes }}</textarea>
             <div class="w-full mt-auto flex justify-between">
-                <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "notes", "state": "default" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Cancel</button>
-                <button hx-put="/r/opus/task" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "updating": "notes" }' hx-target="#opus-main" hx-swap="outerHTML" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
+                <button hx-put="/r/opus/state" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "section": "notes", "state": "default" }' hx-target="#opus-main" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="button">Cancel</button>
+                <button hx-put="/r/opus/task" hx-vals='{ "id": "{{ .PageData.Task.ID }}", "updating": "notes" }' hx-target="#opus-main" class="p-4 rounded-md border-2 border-stone-600 hover:bg-stone-400 active:bg-stone-500" type="submit">Submit</button>
             </div>
         </form>
         {{ end }}

@@ -12,7 +12,7 @@
                 <button aria-label="Unshow Task {{ .ID}}" x-show="!$store.Opus.categories['category{{ .ID }}']['delete_category'] && $store.Opus.categories['category{{ .ID }}']['show_task']" @click="$store.Opus.toggleShowTask({{ .ID }})"><i class="fa-solid fa-circle-chevron-up"></i></button>
                 <!-- Category Delete Confirmation -->
                 <button aria-label="Cancel Delete Category {{ .ID }}" x-show="$store.Opus.categories['category{{ .ID }}']['delete_category']" @click="$store.Opus.toggleDeleteCategory({{ .ID }})"><i class="fa-solid fa-circle-xmark"></i></button>
-                <button aria-label="Confirm Delete Category {{ .ID }}" x-show="$store.Opus.categories['category{{ .ID }}']['delete_category']" hx-on:click="event.stopPropagation()" hx-delete="/r/opus/category/{{ .ID }}" hx-target="#opus-category" hx-swap="outerHTML"><i class="fa-solid fa-circle-check"></i></button>
+                <button aria-label="Confirm Delete Category {{ .ID }}" x-show="$store.Opus.categories['category{{ .ID }}']['delete_category']" hx-on:click="event.stopPropagation()" hx-delete="/r/opus/category/{{ .ID }}" hx-target="#opus-category"><i class="fa-solid fa-circle-check"></i></button>
             </div>
         </div>
         <!-- Add Task Form -->
@@ -21,7 +21,7 @@
                 <input class="w-5/6 p-2" type="text" name="title" placeholder="New Task" autocomplete="off" title="Task Title" required>
                 <input class="w-1/6 p-2" type="number" name="priority" placeholder="0-9" autocomplete="off" title="Task Priority">
                 <button aria-label="Cancel Add Task {{ .ID }}" type="button" @click="$store.Opus.toggleAddTask({{ .ID }})"><i class="fa-solid fa-circle-xmark text-rose-400"></i></button>
-                <button aria-label="Submit Add Task {{ .ID }}" type="submit" hx-post="/r/opus/task" hx-target="#opus-category" hx-vals='{"parent_type": "category", "category_id": "{{ .ID }}"}' hx-swap="outerHTML"><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
+                <button aria-label="Submit Add Task {{ .ID }}" type="submit" hx-post="/r/opus/task" hx-target="#opus-category" hx-vals='{"parent_type": "category", "category_id": "{{ .ID }}"}'><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
             </form>
         </div>
         <!-- Task List on Category -->

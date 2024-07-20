@@ -5,14 +5,14 @@
         <button hx-get="/projects" hx-target="body" class="p-4 bg-stone-300 hover:brightness-75 active:brightness-50">
             Back
         </button>
-        <div hx-get="/r/opus/tasks" hx-trigger="load" hx-target="#opus-category" hx-swap="outerHTML" class="w-full mt-4 flex-1 flex flex-col gap-2">
+        <div hx-get="/r/opus/tasks" hx-trigger="load" hx-target="#opus-category" class="w-full mt-4 flex-1 flex flex-col gap-2">
             {{ template "opus-category" }}
             <div class="border-t-2 border-stone-500 pt-2 px-4">
                 <form id="add_category_form" x-show="$store.Opus.addCategoryState" class="w-full gap-1 flex">
                     <input class="w-5/6 p-2" type="text" name="name" placeholder="New Category" autocomplete="off" title="Category Name" required>
                     <input class="w-1/6 p-2" type="number" name="priority" placeholder="0-9" autocomplete="off" title="Category Priority">
                     <button aria-label="Cancel Add Category" type="button" @click="$store.Opus.toggleAddCategory()" ><i class="fa-solid fa-circle-xmark text-rose-400"></i></button>
-                    <button aria-label="Submit Add Category" type="submit" @click="$store.Opus.toggleAddCategory()" hx-on::after-request="resetAddCategoryForm()" hx-post="/r/opus/category" hx-target="#opus-category" hx-swap="outerHTML"><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
+                    <button aria-label="Submit Add Category" type="submit" @click="$store.Opus.toggleAddCategory()" hx-on::after-request="resetAddCategoryForm()" hx-post="/r/opus/category" hx-target="#opus-category"><i class="fa-solid fa-circle-check text-emerald-400"></i></button>
                 </form>
                 <button x-show="!$store.Opus.addCategoryState" @click="$store.Opus.toggleAddCategory()" class="hover:underline underline-offset-4"><i class="fa-solid fa-plus"></i> Add a Category</button>
             </div>
