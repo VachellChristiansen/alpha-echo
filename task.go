@@ -2,12 +2,9 @@ package main
 
 import (
 	"alpha-echo/models"
-	"fmt"
 	"os"
-	"strings"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -36,187 +33,23 @@ func RunTasks(ts []string, db *gorm.DB, logger Logger) {
 
 func migrateModels(db *gorm.DB) func() {
 	return func() {
-		db.AutoMigrate(models.AccessLog{})
-		db.AutoMigrate(models.Regular{})
-		db.AutoMigrate(models.RegularAccess{})
-		db.AutoMigrate(models.RegularSession{})
-		db.AutoMigrate(models.RegularState{})
-		db.AutoMigrate(models.Project{})
-		db.AutoMigrate(models.ProjectTag{})
-		db.AutoMigrate(models.Category{})
-		db.AutoMigrate(models.Task{})
-		db.AutoMigrate(models.TaskGoal{})
+		models.MigrateProgram(db)
+		models.MigrateRegular(db)
+		models.MigrateProjects(db)
+		models.MigrateOpus(db)
+		models.MigrateVacuus(db)
 	}
 }
 
 func seedModels(db *gorm.DB, logger Logger) func() {
 	return func() {
-		accessSeeder(db, logger)
-		regularSeeder(db, logger)
-		projectTagSeeder(db, logger)
-		projectSeeder(db, logger)
-	}
-}
-
-func accessSeeder(db *gorm.DB, logger Logger) {
-	accesses := []models.RegularAccess{
-		{Access: "Administrator"},
-		{Access: "Developer"},
-		{Access: "Enforcer"},
-		{Access: "Regular"},
-		{Access: "Guest"},
-	}
-
-	tx := db.Begin()
-	for _, access := range accesses {
-		if err := tx.Create(&access).Error; err != nil {
-			tx.Rollback()
-			logger["TASK"].Fatalf("[accessSeeder] Seeding Failure, Value: %v", access)
+		if err := models.SeedRegular(db); err != nil {
+			logger["TASK"].Printf("Seeding Regular Models Failure, Error: %v", err)
+			os.Exit(1)
 		}
-	}
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		logger["TASK"].Fatalf("[accessSeeder] Transaction Commit Failure")
-	}
-}
-
-func regularSeeder(db *gorm.DB, logger Logger) {
-	regulars := []models.Regular{
-		{
-			Name:     "Guest",
-			Email:    "guest@alpha.com",
-			Password: "guestAlpha",
-		},
-	}
-
-	var (
-		access models.RegularAccess
-	)
-
-	tx := db.Begin()
-	for _, regular := range regulars {
-		// TODO: Hash Password
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(regular.Password), 8)
-		if err != nil {
-			logger["TASK"].Fatalf("[regularSeeder] Generating Hashed Password Failure")
-			return
+		if err := models.SeedProjects(db); err != nil {
+			logger["TASK"].Printf("Seeding Opus Models Failure")
+			os.Exit(1)
 		}
-		regular.Password = string(hashedPassword)
-
-		// TODO: Define Default Access
-		if err := db.Where("access = ?", "Guest").First(&access).Error; err != nil {
-			logger["TASK"].Fatalf("[regularSeeder] Generating Default Access Failure")
-			return
-		}
-		regular.RegularAccessID = access.ID
-
-		if err := tx.Create(&regular).Error; err != nil {
-			tx.Rollback()
-			logger["TASK"].Fatalf("[regularSeeder] Seeding Failure, Value: %v", regular)
-		}
-	}
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		logger["TASK"].Fatalf("[regularSeeder] Transaction Commit Failure")
-	}
-}
-
-func projectSeeder(db *gorm.DB, logger Logger) {
-	projects := []models.Project{
-		{
-			Name:            "Proximus",
-			Description:     "Machine learning projects.",
-			PagePath:        "/a/proximus",
-			ExternalPath:    fmt.Sprintf("%s/proximus", os.Getenv("ML_URL")),
-			RegularAccessID: 1,
-		},
-		{
-			Name:            "Opus",
-			Description:     "Task management tool.",
-			PagePath:        "/r/opus",
-			ExternalPath:    fmt.Sprintf("%s/opus", os.Getenv("ML_URL")),
-			RegularAccessID: 4,
-		},
-		{
-			Name:            "Chrysus",
-			Description:     "Finance Management tool.",
-			PagePath:        "/r/chrysus",
-			ExternalPath:    fmt.Sprintf("%s/chrysus", os.Getenv("ML_URL")),
-			RegularAccessID: 4,
-		},
-		{
-			Name:            "Elpida",
-			Description:     "Finding more efficient means to run a program.",
-			PagePath:        "/r/elpida",
-			ExternalPath:    fmt.Sprintf("%s/elpida", os.Getenv("ML_URL")),
-			RegularAccessID: 4,
-		},
-		{
-			Name:            "Vacuus",
-			Description:     "Sandbox of whatever.",
-			PagePath:        "/r/vacuus",
-			ExternalPath:    fmt.Sprintf("%s/vacuus", os.Getenv("ML_URL")),
-			RegularAccessID: 4,
-		},
-	}
-	tags := []string{
-		"ML,Tools",
-		"Tools",
-		"Tools",
-		"Tools,Experimental",
-		"Experimental",
-	}
-
-	tx := db.Begin()
-	for index, project := range projects {
-		var tagData []models.ProjectTag
-		if err := db.Where("name IN ?", strings.Split(tags[index], ",")).Find(&tagData).Error; err != nil {
-			tx.Rollback()
-			logger["TASK"].Fatalf("[projectSeeder] Fetching Tags Failure, value: %v", tags[index])
-		}
-
-		project.ProjectTags = tagData
-
-		if err := tx.Create(&project).Error; err != nil {
-			tx.Rollback()
-			logger["TASK"].Fatalf("[projectSeeder] Seeding Failure, Value: %v", project)
-		}
-	}
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		logger["TASK"].Fatalf("[projectSeeder] Transaction Commit Failure")
-	}
-}
-
-func projectTagSeeder(db *gorm.DB, logger Logger) {
-	projectTags := []models.ProjectTag{
-		{
-			Name:  "Tools",
-			Color: "amber",
-		},
-		{
-			Name:  "ML",
-			Color: "rose",
-		},
-		{
-			Name:  "Games",
-			Color: "emerald",
-		},
-		{
-			Name:  "Experimental",
-			Color: "sky",
-		},
-	}
-
-	tx := db.Begin()
-	for _, projectTag := range projectTags {
-		if err := tx.Create(&projectTag).Error; err != nil {
-			tx.Rollback()
-			logger["TASK"].Fatalf("[projectTagSeeder] Seeding Failure, Value: %v", projectTag)
-		}
-	}
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		logger["TASK"].Fatalf("[projectTagSeeder] Transaction Commit Failure")
 	}
 }

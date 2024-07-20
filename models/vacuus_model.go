@@ -7,3 +7,7 @@ type VacuusAnimation struct {
 	Name     string `gorm:"size:255"`
 	Category string `gorm:"size:255"`
 }
+
+func MigrateVacuus(db *gorm.DB) {
+	db.AutoMigrate(VacuusAnimation{})
+}

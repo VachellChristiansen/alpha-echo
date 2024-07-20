@@ -43,6 +43,12 @@ type TaskGoal struct {
 	TaskID    uint      `gorm:"index"`
 }
 
+func MigrateOpus(db *gorm.DB) {
+	db.AutoMigrate(Category{})
+	db.AutoMigrate(Task{})
+	db.AutoMigrate(TaskGoal{})
+}
+
 // Note:
 
 // Possible Status for Category:

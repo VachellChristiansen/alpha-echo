@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -43,4 +44,87 @@ type RegularState struct {
 	Timestamp        int64                  `gorm:"-"`
 	Tokens           map[string]interface{} `gorm:"-"`
 	RegularSessionID uint
+}
+
+func MigrateRegular(db *gorm.DB) {
+	db.AutoMigrate(Regular{})
+	db.AutoMigrate(RegularAccess{})
+	db.AutoMigrate(RegularSession{})
+	db.AutoMigrate(RegularState{})
+}
+
+func SeedRegular(db *gorm.DB) error {
+	if err := seedAccess(db); err != nil {
+		return err
+	}
+	if err := seedRegular(db); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func seedAccess(db *gorm.DB) error {
+	accesses := []RegularAccess{
+		{Access: "Administrator"},
+		{Access: "Developer"},
+		{Access: "Enforcer"},
+		{Access: "Regular"},
+		{Access: "Guest"},
+	}
+
+	tx := db.Begin()
+	for _, access := range accesses {
+		if err := tx.Create(&access).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
+}
+
+func seedRegular(db *gorm.DB) error {
+	regulars := []Regular{
+		{
+			Name:     "Guest",
+			Email:    "guest@alpha.com",
+			Password: "guestAlpha",
+		},
+	}
+
+	var (
+		access RegularAccess
+	)
+
+	tx := db.Begin()
+	for _, regular := range regulars {
+		// TODO: Hash Password
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(regular.Password), 8)
+		if err != nil {
+			return err
+		}
+		regular.Password = string(hashedPassword)
+
+		// TODO: Define Default Access
+		if err := db.Where("access = ?", "Guest").First(&access).Error; err != nil {
+			return err
+		}
+		regular.RegularAccessID = access.ID
+
+		if err := tx.Create(&regular).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
 }

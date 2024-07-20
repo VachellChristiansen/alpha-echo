@@ -12,3 +12,7 @@ type AccessLog struct {
 	OverallLatency int64  `gorm:"not null"`
 	RegularID      uint
 }
+
+func MigrateProgram(db *gorm.DB) {
+	db.AutoMigrate(AccessLog{})
+}
