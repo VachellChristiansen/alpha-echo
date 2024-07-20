@@ -57,9 +57,9 @@ func (h *OpusHandlerImpl) Default(c echo.Context) error {
 		"TaskCompletion": "default",
 		"TaskNotes":      "default",
 	}
-	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+	regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
 
-	if err := h.saveState(c, &regular); err != nil {
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
 		return err
 	}
 
@@ -115,9 +115,9 @@ func (h *OpusHandlerImpl) GetTaskByID(c echo.Context) error {
 	}
 	regular.RegularSession.RegularState.PageData = h.extractTaskGoal(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
-	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+	regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
 
-	if err := h.saveState(c, &regular); err != nil {
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
 		return err
 	}
 
@@ -311,7 +311,7 @@ func (h *OpusHandlerImpl) AddTaskGoal(c echo.Context) error {
 	regular.RegularSession.RegularState.PageData["Task"] = task
 	regular.RegularSession.RegularState.PageData = h.extractTaskGoal(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
-	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+	regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
 
 	return c.Render(http.StatusOK, "opus-main", regular.RegularSession.RegularState)
 }
@@ -371,9 +371,9 @@ func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 		regular.RegularSession.RegularState.PageData["TaskNotes"] = req.State
 	}
 
-	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+	regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
 
-	if err := h.saveState(c, &regular); err != nil {
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
 		return err
 	}
 
@@ -469,9 +469,9 @@ func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 	}
 	regular.RegularSession.RegularState.PageData = h.extractTaskGoal(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
-	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+	regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
 
-	if err := h.saveState(c, &regular); err != nil {
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
 		return err
 	}
 
@@ -561,7 +561,7 @@ func (h *OpusHandlerImpl) UpdateGoal(c echo.Context) error {
 
 		if err := h.db.Save(&goal).Error; err != nil {
 			errorData := dtos.Error{
-				Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+				Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 				Message: "Saving Task Goal Data Error",
 				Error:   err.Error(),
 			}
@@ -581,7 +581,7 @@ func (h *OpusHandlerImpl) UpdateGoal(c echo.Context) error {
 
 	if err := h.db.Preload("TaskGoals").First(&task, req.TaskID).Error; err != nil {
 		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v-OPUS", http.StatusInternalServerError),
+			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
 			Message: "Fetching Task Error",
 			Error:   err.Error(),
 		}
@@ -591,9 +591,9 @@ func (h *OpusHandlerImpl) UpdateGoal(c echo.Context) error {
 	regular.RegularSession.RegularState.PageData["TaskGoals"] = "default"
 	regular.RegularSession.RegularState.PageData = h.extractTaskGoal(regular.RegularSession.RegularState.PageData, &task)
 	regular.RegularSession.RegularState.PageData = h.extractTaskDate(regular.RegularSession.RegularState.PageData, &task)
-	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+	regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
 
-	if err := h.saveState(c, &regular); err != nil {
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
 		return err
 	}
 
@@ -660,28 +660,6 @@ func (h *OpusHandlerImpl) DeleteTask(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "opus-category", categories)
-}
-
-func (h *OpusHandlerImpl) saveState(c echo.Context, regular *models.Regular) error {
-	if err := h.db.Save(&regular.RegularSession.RegularState).Error; err != nil {
-		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
-		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
-			Message: "Saving State Error",
-			Error:   err.Error(),
-		}
-		return c.Render(http.StatusInternalServerError, "error", errorData)
-	}
-	return nil
-}
-
-func (h *OpusHandlerImpl) convertToDatabyte(obj interface{}) (result []byte) {
-	dataByte, err := json.Marshal(obj)
-	if err != nil {
-		h.logger["ERROR"].Printf("Converting To Byte Error")
-		return nil
-	}
-	return dataByte
 }
 
 func (h *OpusHandlerImpl) generatePreloadTask(depth int) string {

@@ -64,7 +64,7 @@ func (h *IndexHandlerImpl) Index(c echo.Context) error {
 		"FontAwesome": os.Getenv("TOKEN_FONT_AWESOME"),
 	}
 
-	if err := h.saveState(c, &regular); err != nil {
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
 		return err
 	}
 
@@ -77,7 +77,7 @@ func (h *IndexHandlerImpl) Default(c echo.Context) error {
 	regular.RegularSession.RegularState.Page = "index"
 	regular.RegularSession.RegularState.PageState = "default"
 
-	if err := h.saveState(c, &regular); err != nil {
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
 		return err
 	}
 
@@ -91,7 +91,7 @@ func (h *IndexHandlerImpl) About(c echo.Context) error {
 	regular.RegularSession.RegularState.Page = "index"
 	regular.RegularSession.RegularState.PageState = "about"
 
-	if err := h.saveState(c, &regular); err != nil {
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
 		return err
 	}
 
@@ -122,9 +122,9 @@ func (h *IndexHandlerImpl) Projects(c echo.Context) error {
 
 	regular.RegularSession.RegularState.Page = "index"
 	regular.RegularSession.RegularState.PageState = "projects"
-	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+	regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
 
-	if err := h.saveState(c, &regular); err != nil {
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
 		return err
 	}
 
@@ -140,9 +140,9 @@ func (h *IndexHandlerImpl) Gate(c echo.Context) error {
 	regular.RegularSession.RegularState.PageData = map[string]interface{}{
 		"InnerState": "register",
 	}
-	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+	regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
 
-	if err := h.saveState(c, &regular); err != nil {
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
 		return err
 	}
 
@@ -169,9 +169,9 @@ func (h *IndexHandlerImpl) GateSwitch(c echo.Context) error {
 	regular.RegularSession.RegularState.PageData = map[string]interface{}{
 		"InnerState": req.To,
 	}
-	regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+	regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
 
-	if err := h.saveState(c, &regular); err != nil {
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
 		return err
 	}
 
@@ -215,9 +215,9 @@ func (h *IndexHandlerImpl) GatePassing(c echo.Context) error {
 		regular.RegularSession.RegularState.PageData = map[string]interface{}{
 			"InnerState": "login",
 		}
-		regular.RegularSession.RegularState.PageDataStore = h.convertToDatabyte(regular.RegularSession.RegularState.PageData)
+		regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
 
-		if err := h.saveState(c, &regular); err != nil {
+		if err := saveState(c, &regular, h.db, h.logger); err != nil {
 			return err
 		}
 
@@ -384,28 +384,6 @@ func (h *IndexHandlerImpl) gate(c echo.Context, req dtos.GateRequest, guest mode
 		Error:   "bad request",
 	}
 	return regular, c.Render(http.StatusUnauthorized, "error", errorData)
-}
-
-func (h *IndexHandlerImpl) saveState(c echo.Context, regular *models.Regular) error {
-	if err := h.db.Save(&regular.RegularSession.RegularState).Error; err != nil {
-		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
-		errorData := dtos.Error{
-			Code:    fmt.Sprintf("IE-Endpoint-%v", http.StatusInternalServerError),
-			Message: "Saving State Error",
-			Error:   err.Error(),
-		}
-		return c.Render(http.StatusInternalServerError, "error", errorData)
-	}
-	return nil
-}
-
-func (h *IndexHandlerImpl) convertToDatabyte(m map[string]interface{}) (result []byte) {
-	dataByte, err := json.Marshal(m)
-	if err != nil {
-		h.logger["ERROR"].Printf("Converting To Byte Error")
-		return nil
-	}
-	return dataByte
 }
 
 func projectsToMap(p []models.Project) (projectsMap []map[string]interface{}) {

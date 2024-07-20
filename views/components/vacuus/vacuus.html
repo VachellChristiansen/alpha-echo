@@ -1,20 +1,25 @@
 {{ define "vacuus" }}
 <div id="vacuus" class="w-full h-full bg-neutral-900 text-neutral-300">
-    <div id="menu" class="absolute top-1/2 -translate-y-1/2 w-[150px] h-[500px] p-4 hidden flex-col gap-2 border-2 border-neutral-300 rounded-xl">
+    <div id="menu" class="absolute z-50 top-1/2 -translate-y-1/2 w-[200px] h-[500px] p-4 hidden flex-col gap-2 border-2 border-neutral-300 rounded-xl">
         <button hx-get="/projects" hx-target="body" class="text-start group">
             <span class="underline underline-offset-4 group-hover:font-bold">Back</span>
         </button>
-        <div class="flex-1 overflow-y-scroll">
-            <button class="text-start group">
-                <span class="underline underline-offset-4 group-hover:font-bold">Random Move Circles</span>
-            </button>
+        <div class="w-full flex-1 overflow-y-scroll overflow-x-hidden">
+            {{ range $Category, $Animations := .PageData.Animations }}
+                <h2 class="text-wrap text-xl">{{ $Category }} Animations</h2>
+                {{ range $Animations }}
+                    <button hx-put="/r/vacuus/animation" hx-target="#canvas" hx-swap="innerHTML" hx-vals='{ "Category": "{{ $Category }}", "Name": "{{ . }}"}' class="text-start group">
+                        <span class="underline underline-offset-4 group-hover:font-bold">{{ VacuusAnimationNameConverter . }}</span>
+                    </button>
+                {{ end }}
+            {{ end}}
         </div>
         <button hx-on:click="unshowMenu()" class="text-start group">
             <span class="underline underline-offset-4 group-hover:font-bold">Minimize</span>
         </button>
     </div>
-    <div id="menu_trigger" class="absolute left-0 w-2 h-full bg-neutral-100 bg-opacity-10"></div>
-    <div id="menu_call" class="absolute top-1/2 -translate-y-1/2 w-20 h-20 hidden justify-center items-center bg-neutral-300 rounded-full">
+    <div id="menu_trigger" class="absolute z-50 left-0 w-2 h-full bg-neutral-100 bg-opacity-10"></div>
+    <div id="menu_call" class="absolute z-50 top-1/2 -translate-y-1/2 w-20 h-20 hidden justify-center items-center bg-neutral-300 rounded-full">
         <i class="fa-solid fa-arrow-left fa-2xl animate-pulse text-neutral-900"></i>
     </div>
 
@@ -47,7 +52,7 @@
             const menu = document.getElementById("menu")
             const menuCall = document.getElementById("menu_call")
 
-            let menuLeft = -200
+            let menuLeft = -250
             let menuCallLeft = 40
             let menuSet = false
             let menuCallSet = false
@@ -130,99 +135,17 @@
         document.getElementById("menu_trigger").addEventListener("mouseenter", showMenuCall)
     </script>
 
+    {{ if .PageData.BackgroundAnimation }}
+    <div 
+        hx-put="/r/vacuus/animation" 
+        hx-target="#canvas" 
+        hx-swap="innerHTML" 
+        hx-vals='{"Category": "Background", "Name": "{{ .PageData.BackgroundAnimation }}"}'
+        hx-trigger="load">
+    </div>
+    {{ end }}
 
-    <script>
-        function createClass() {
-            return class MovableObject {
-                constructor(element, xMove, yMove) {
-                    this.element = element;
-                    this.xPos = Math.random() * 1500;
-                    this.yPos = Math.random() * 600;
-                    this.goLeft = Math.random() > 0.5;
-                    this.goUp = Math.random() > 0.5;
-                    this.xMove = xMove;
-                    this.yMove = yMove;
-                }
-
-                move() {
-                    if (this.element.offsetWidth + this.element.offsetLeft > window.innerWidth) {
-                        this.goLeft = true;
-                    } else if (this.element.offsetLeft < 0) {
-                        this.goLeft = false;
-                    }
-
-                    if (this.element.offsetHeight + this.element.offsetTop > window.innerHeight) {
-                        this.goUp = true;
-                    } else if (this.element.offsetTop < 0) {
-                        this.goUp = false;
-                    }
-
-                    this.xPos = this.goLeft ? this.xPos - this.xMove : this.xPos + this.xMove;
-                    this.yPos = this.goUp ? this.yPos - this.yMove : this.yPos + this.yMove;
-
-                    this.element.style.left = `${this.xPos}px`;
-                    this.element.style.top = `${this.yPos}px`;
-                }
-
-                remove() {
-                    clearInterval(this.intervalId);
-                    this.element.remove()
-                }
-            }
-        }
-
-        function createMovableObject(container, xMove, yMove, id) {
-            const MovableObject = createClass()
-            const obj = document.createElement('div');
-            obj.id = "Bambang"+id
-            obj.classList.add('obj');
-            obj.classList.add("bg-neutral-200")
-            obj.classList.add("bg-opacity-20")
-            obj.classList.add("absolute")
-            obj.classList.add("rounded-full")
-            obj.style.width = "250px"
-            obj.style.height = "250px"
-            container.appendChild(obj);
-            return new MovableObject(obj, xMove, yMove);
-        }
-
-        function initialize() {
-            const container = document.getElementById('vacuus');
-            let objects = [];
-            for (let i = 0; i < 5; i++) {
-                if (container.querySelector("#Bambang"+i)) {
-                    return
-                }
-                const xMove = Math.random() * (10 - 5) + 5
-                const yMove = Math.random() * (10 - 5) + 5
-                let object = createMovableObject(container, xMove, yMove, i)
-                objects.push(object)
-                object.intervalId = setInterval(() => object.move(), 10)
-            }
-
-            const observer = new MutationObserver((mutationsList, observer) => {
-                for (const mutation of mutationsList) {
-                    if (mutation.removedNodes.length > 0) {
-                        for (const node of mutation.removedNodes) {
-                            if (container) {
-                                if (node === container || container.contains(node)) {
-                                    objects.forEach(obj => obj.remove());
-                                    objects = []
-                                    observer.disconnect();
-                                    break;
-                                }
-                            } else {
-                                return
-                            }
-                        }
-                    }
-                }
-            });
-            
-            observer.observe(document.body, { childList: true, subtree: true });
-        }
-        
-        initialize()
-    </script>
+    <div id="canvas" class="absolute z-0 w-full h-full">
+    </div>
 </div>
 {{ end }}

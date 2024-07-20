@@ -142,6 +142,7 @@ func main() {
 		vacuus := regular.Group("/vacuus")
 		{
 			vacuus.GET("/", h.VacuusHandler.Default)
+			vacuus.PUT("/animation", h.VacuusHandler.UpdateAnimation)
 		}
 	}
 

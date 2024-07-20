@@ -25,15 +25,15 @@ type ProjectTag struct {
 }
 
 func MigrateProjects(db *gorm.DB) {
-	db.AutoMigrate(Project{})
 	db.AutoMigrate(ProjectTag{})
+	db.AutoMigrate(Project{})
 }
 
 func SeedProjects(db *gorm.DB) error {
-	if err := seedProjects(db); err != nil {
+	if err := seedProjectTags(db); err != nil {
 		return err
 	}
-	if err := seedProjectTags(db); err != nil {
+	if err := seedProjects(db); err != nil {
 		return err
 	}
 

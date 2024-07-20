@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"strings"
+	"unicode"
 )
 
 // Template Renderer
@@ -23,11 +24,27 @@ func TruncateTime(datetime string) string {
 	return parts[0]
 }
 
+func VacuusAnimationNameConverter(name string) string {
+	var (
+		strSliceCopy []string
+	)
+
+	strSlice := strings.Split(name, "-")
+	for _, str := range strSlice {
+		runes := []rune(str)
+		runes[0] = unicode.ToUpper(runes[0])
+		strSliceCopy = append(strSliceCopy, string(runes))
+	}
+
+	return strings.Join(strSliceCopy, " ")
+}
+
 func newTemplate() *Templ {
 	funcMap := template.FuncMap{
-		"Repeat":       Repeat,
-		"ReplaceAll":   ReplaceAll,
-		"TruncateTime": TruncateTime,
+		"Repeat":                       Repeat,
+		"ReplaceAll":                   ReplaceAll,
+		"TruncateTime":                 TruncateTime,
+		"VacuusAnimationNameConverter": VacuusAnimationNameConverter,
 	}
 	t := template.Must(template.New("").Funcs(funcMap).ParseGlob("views/*.html"))
 	t = template.Must(t.ParseGlob("views/components/*.html"))
