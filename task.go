@@ -48,7 +48,7 @@ func seedModels(db *gorm.DB, logger Logger) func() {
 			os.Exit(1)
 		}
 		if err := models.SeedProjects(db); err != nil {
-			logger["TASK"].Printf("Seeding Opus Models Failure")
+			logger["TASK"].Printf("Seeding Opus Models Failure, Error: %v", err)
 			os.Exit(1)
 		}
 	}
