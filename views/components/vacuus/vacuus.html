@@ -4,20 +4,21 @@
         <button hx-get="/projects" hx-target="body" class="text-start group">
             <span class="underline underline-offset-4 group-hover:font-bold">Back</span>
         </button>
-        <div class="flex-1"></div>
+        <div class="flex-1 overflow-y-scroll">
+            <button class="text-start group">
+                <span class="underline underline-offset-4 group-hover:font-bold">Random Move Circles</span>
+            </button>
+        </div>
         <button hx-on:click="unshowMenu()" class="text-start group">
             <span class="underline underline-offset-4 group-hover:font-bold">Minimize</span>
         </button>
     </div>
-
-    <div id="menu_trigger" class="absolute left-0 w-2 h-full bg-neutral-100 bg-opacity-10">
-
-    </div>
-    
+    <div id="menu_trigger" class="absolute left-0 w-2 h-full bg-neutral-100 bg-opacity-10"></div>
     <div id="menu_call" class="absolute top-1/2 -translate-y-1/2 w-20 h-20 hidden justify-center items-center bg-neutral-300 rounded-full">
         <i class="fa-solid fa-arrow-left fa-2xl animate-pulse text-neutral-900"></i>
     </div>
 
+    <!-- Menu Functionality -->
     <script>
         function unshowMenu() {
             const menu = document.getElementById("menu")
@@ -77,6 +78,27 @@
             }, 5);
         }
 
+        function unshowMenuCall() {
+            const menuCall = document.getElementById("menu_call")
+            const menuTrigger = document.getElementById("menu_trigger")
+
+            let menuCallLeft = 40
+
+            menuCall.style.left = `${menuCallLeft}px`
+
+            const menuInterval = setInterval(() => {
+                if (menuCallLeft > -100) {
+                    menuCallLeft -= 5
+                    menuCall.style.left = `${menuCallLeft}px`
+                } else {
+                    menuTrigger.classList.remove("hidden")
+                    menuCall.classList.add("hidden")
+                    menuCall.classList.remove("flex")
+                    clearInterval(menuInterval)
+                }
+            }, 5);
+        }
+
         function showMenuCall() {
             const menuCall = document.getElementById("menu_call")
             const menuTrigger = document.getElementById("menu_trigger")
@@ -96,11 +118,18 @@
                     clearInterval(menuInterval)
                 }
             }, 5);
+
+            setTimeout(() => {
+                if (menuCall.offsetLeft > 0) {
+                    unshowMenuCall()
+                }
+            }, 3000);
         }
 
         document.getElementById("menu_call").addEventListener("click", showMenu)
         document.getElementById("menu_trigger").addEventListener("mouseenter", showMenuCall)
     </script>
+
 
     <script>
         function createClass() {

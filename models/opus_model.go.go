@@ -6,34 +6,34 @@ import (
 	"gorm.io/gorm"
 )
 
-type Category struct {
+type OpusCategory struct {
 	gorm.Model
 	Name      string `gorm:"size:255"`
 	Priority  int    `gorm:"default:0"`
 	Status    int    `gorm:"default:0"`
-	Tasks     []Task
+	Tasks     []OpusTask
 	RegularID uint
 }
 
-type Task struct {
+type OpusTask struct {
 	gorm.Model
-	Title         string    `gorm:"size:255;not null"`
-	Details       string    `gorm:"type:text"`
-	Notes         string    `gorm:"type:text"`
-	Priority      int       `gorm:"default:0"`
-	Inset         int       `gorm:"default:1"`
-	DoneAt        time.Time `gorm:"type:timestamp"`
-	StartDate     time.Time `gorm:"type:timestamp"`
-	EndDate       time.Time `gorm:"type:timestamp"`
-	Status        int       `gorm:"default:0"`
-	ParentTask    *Task     `gorm:"foreignKey:ParentID"`
-	ChildrenTasks []Task    `gorm:"foreignKey:ParentID"`
+	Title         string     `gorm:"size:255;not null"`
+	Details       string     `gorm:"type:text"`
+	Notes         string     `gorm:"type:text"`
+	Priority      int        `gorm:"default:0"`
+	Inset         int        `gorm:"default:1"`
+	DoneAt        time.Time  `gorm:"type:timestamp"`
+	StartDate     time.Time  `gorm:"type:timestamp"`
+	EndDate       time.Time  `gorm:"type:timestamp"`
+	Status        int        `gorm:"default:0"`
+	ParentTask    *OpusTask  `gorm:"foreignKey:ParentID"`
+	ChildrenTasks []OpusTask `gorm:"foreignKey:ParentID"`
 	CategoryID    uint
 	ParentID      *uint
-	TaskGoals     []TaskGoal `gorm:"foreignKey:TaskID"`
+	TaskGoals     []OpusTaskGoal `gorm:"foreignKey:TaskID"`
 }
 
-type TaskGoal struct {
+type OpusTaskGoal struct {
 	gorm.Model
 	GoalText  string    `gorm:"type:text"`
 	DoneAt    time.Time `gorm:"type:timestamp"`

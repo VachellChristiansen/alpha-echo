@@ -68,7 +68,7 @@ func (h *OpusHandlerImpl) Default(c echo.Context) error {
 
 func (h *OpusHandlerImpl) GetTasks(c echo.Context) error {
 	var (
-		categories []models.Category
+		categories []models.OpusCategory
 	)
 
 	regular := c.Get("regular").(models.Regular)
@@ -88,7 +88,7 @@ func (h *OpusHandlerImpl) GetTasks(c echo.Context) error {
 
 func (h *OpusHandlerImpl) GetTaskByID(c echo.Context) error {
 	var (
-		task models.Task
+		task models.OpusTask
 	)
 
 	regular := c.Get("regular").(models.Regular)
@@ -127,7 +127,7 @@ func (h *OpusHandlerImpl) GetTaskByID(c echo.Context) error {
 func (h *OpusHandlerImpl) AddCategory(c echo.Context) error {
 	var (
 		req        dtos.AddOpusCategoryRequest
-		categories []models.Category
+		categories []models.OpusCategory
 	)
 
 	regular := c.Get("regular").(models.Regular)
@@ -142,7 +142,7 @@ func (h *OpusHandlerImpl) AddCategory(c echo.Context) error {
 		return c.Render(http.StatusBadRequest, "error", errorData)
 	}
 
-	newCategory := models.Category{
+	newCategory := models.OpusCategory{
 		Name:      req.Name,
 		Priority:  req.Priority,
 		RegularID: regular.ID,
@@ -174,8 +174,8 @@ func (h *OpusHandlerImpl) AddCategory(c echo.Context) error {
 func (h *OpusHandlerImpl) AddTask(c echo.Context) error {
 	var (
 		req        dtos.AddOpusTaskRequest
-		categories []models.Category
-		newTask    models.Task
+		categories []models.OpusCategory
+		newTask    models.OpusTask
 	)
 
 	regular := c.Get("regular").(models.Regular)
@@ -190,14 +190,14 @@ func (h *OpusHandlerImpl) AddTask(c echo.Context) error {
 		return c.Render(http.StatusBadRequest, "error", errorData)
 	}
 
-	newTask = models.Task{
+	newTask = models.OpusTask{
 		Title:      req.Title,
 		Priority:   req.Priority,
 		CategoryID: req.CategoryID,
 	}
 
 	if req.ParentType == "task" {
-		var parentTask models.Task
+		var parentTask models.OpusTask
 
 		if err := h.db.Where("id = ?", req.ParentID).First(&parentTask).Error; err != nil {
 			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
@@ -239,7 +239,7 @@ func (h *OpusHandlerImpl) AddTask(c echo.Context) error {
 
 func (h *OpusHandlerImpl) AddTaskGoal(c echo.Context) error {
 	var (
-		task models.Task
+		task models.OpusTask
 		req  dtos.AddOpusTaskGoalRequest
 	)
 	regular := c.Get("regular").(models.Regular)
@@ -273,7 +273,7 @@ func (h *OpusHandlerImpl) AddTaskGoal(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "error", errorData)
 	}
 
-	newGoal := models.TaskGoal{
+	newGoal := models.OpusTaskGoal{
 		TaskID:    req.TaskID,
 		GoalText:  req.GoalText,
 		StartDate: parsedStartDate,
@@ -319,7 +319,7 @@ func (h *OpusHandlerImpl) AddTaskGoal(c echo.Context) error {
 func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 	var (
 		req  dtos.UpdateOpusStateRequest
-		task models.Task
+		task models.OpusTask
 	)
 
 	regular := c.Get("regular").(models.Regular)
@@ -383,7 +383,7 @@ func (h *OpusHandlerImpl) UpdateState(c echo.Context) error {
 func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 	var (
 		req  dtos.UpdateOpusTaskRequest
-		task models.Task
+		task models.OpusTask
 	)
 
 	regular := c.Get("regular").(models.Regular)
@@ -481,8 +481,8 @@ func (h *OpusHandlerImpl) UpdateTask(c echo.Context) error {
 func (h *OpusHandlerImpl) UpdateGoal(c echo.Context) error {
 	var (
 		req  dtos.UpdateOpusGoalRequest
-		goal models.TaskGoal
-		task models.Task
+		goal models.OpusTaskGoal
+		task models.OpusTask
 	)
 	regular := c.Get("regular").(models.Regular)
 
@@ -497,7 +497,7 @@ func (h *OpusHandlerImpl) UpdateGoal(c echo.Context) error {
 	}
 
 	if req.Updating == "delete" {
-		if err := h.db.Model(&models.TaskGoal{}).Where("id = ?", req.ID).Update("Status", 2).Error; err != nil {
+		if err := h.db.Model(&models.OpusTaskGoal{}).Where("id = ?", req.ID).Update("Status", 2).Error; err != nil {
 			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 			errorData := dtos.Error{
 				Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
@@ -507,7 +507,7 @@ func (h *OpusHandlerImpl) UpdateGoal(c echo.Context) error {
 			return c.Render(http.StatusInternalServerError, "error", errorData)
 		}
 
-		if err := h.db.Delete(&(models.TaskGoal{}), req.ID).Error; err != nil {
+		if err := h.db.Delete(&(models.OpusTaskGoal{}), req.ID).Error; err != nil {
 			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 			errorData := dtos.Error{
 				Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
@@ -517,7 +517,7 @@ func (h *OpusHandlerImpl) UpdateGoal(c echo.Context) error {
 			return c.Render(http.StatusInternalServerError, "error", errorData)
 		}
 	} else if req.Updating == "done" {
-		if err := h.db.Model(&models.TaskGoal{}).Where("id = ?", req.ID).Update("Status", 1).Error; err != nil {
+		if err := h.db.Model(&models.OpusTaskGoal{}).Where("id = ?", req.ID).Update("Status", 1).Error; err != nil {
 			h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 			errorData := dtos.Error{
 				Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
@@ -602,13 +602,13 @@ func (h *OpusHandlerImpl) UpdateGoal(c echo.Context) error {
 
 func (h *OpusHandlerImpl) DeleteCategory(c echo.Context) error {
 	var (
-		categories []models.Category
+		categories []models.OpusCategory
 	)
 	regular := c.Get("regular").(models.Regular)
 
 	categoryID := c.Param("id")
 
-	if err := h.db.Delete(&(models.Category{}), categoryID).Error; err != nil {
+	if err := h.db.Delete(&(models.OpusCategory{}), categoryID).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
@@ -633,13 +633,13 @@ func (h *OpusHandlerImpl) DeleteCategory(c echo.Context) error {
 
 func (h *OpusHandlerImpl) DeleteTask(c echo.Context) error {
 	var (
-		categories []models.Category
+		categories []models.OpusCategory
 	)
 	regular := c.Get("regular").(models.Regular)
 
 	taskID := c.Param("id")
 
-	if err := h.db.Delete(&(models.Task{}), taskID).Error; err != nil {
+	if err := h.db.Delete(&(models.OpusTask{}), taskID).Error; err != nil {
 		h.logger["ERROR"].Printf("URL: %v, Error: %v", c.Request().URL.Path, err.Error())
 		errorData := dtos.Error{
 			Code:    fmt.Sprintf("IE-DB-%v-OPUS", http.StatusInternalServerError),
@@ -688,9 +688,9 @@ func (h *OpusHandlerImpl) generatePreloadTask(depth int) string {
 	return fmt.Sprintf("Tasks%s", strings.Repeat(".ChildrenTasks", depth))
 }
 
-func (h *OpusHandlerImpl) extractTaskGoal(data map[string]interface{}, task *models.Task) map[string]interface{} {
+func (h *OpusHandlerImpl) extractTaskGoal(data map[string]interface{}, task *models.OpusTask) map[string]interface{} {
 	var (
-		goals        []models.TaskGoal
+		goals        []models.OpusTaskGoal
 		goalProgress []bool
 		goalDone     = 0
 		goalNotDone  = 0
@@ -725,7 +725,7 @@ func (h *OpusHandlerImpl) extractTaskGoal(data map[string]interface{}, task *mod
 	return data
 }
 
-func (h *OpusHandlerImpl) extractTaskDate(data map[string]interface{}, task *models.Task) map[string]interface{} {
+func (h *OpusHandlerImpl) extractTaskDate(data map[string]interface{}, task *models.OpusTask) map[string]interface{} {
 	data["StartDate"] = task.StartDate.Format("2006-01-02T15:04")
 	data["EndDate"] = task.EndDate.Format("2006-01-02T15:04")
 
@@ -747,9 +747,9 @@ func (h *OpusHandlerImpl) extractTaskDate(data map[string]interface{}, task *mod
 	return data
 }
 
-func (h *OpusHandlerImpl) extractTaskGoalData(data map[string]interface{}, taskGoals []models.TaskGoal, taskID int) map[string]interface{} {
+func (h *OpusHandlerImpl) extractTaskGoalData(data map[string]interface{}, taskGoals []models.OpusTaskGoal, taskID int) map[string]interface{} {
 	var (
-		taskGoal models.TaskGoal
+		taskGoal models.OpusTaskGoal
 	)
 
 	for _, goal := range taskGoals {
