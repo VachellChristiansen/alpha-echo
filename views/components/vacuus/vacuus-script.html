@@ -162,6 +162,11 @@
                             }
                             this.place(false)
                         }
+
+                        remove() {
+                            clearInterval(this.intervalId)
+                            this.element.remove()
+                        }
                     }
 
                     const scriptHolder = document.getElementById("scriptHolder")
@@ -186,12 +191,32 @@
                                 name: batch.name+i
                             })
                             circle.place(true)
-                            circle.element.innerHTML = i
                             circlesData[batch.name].push(circle)
 
                             circle.intervalId = setInterval(() => {
                                 circle.move(batch.animationType)
                             }, batch.speed);
+
+                            const observer = new MutationObserver((mutationsList, observer) => {
+                                for (const mutation of mutationsList) {
+                                    if (mutation.removedNodes.length > 0) {
+                                        for (const node of mutation.removedNodes) {
+                                            if (scriptHolder) {
+                                                if (node === scriptHolder || scriptHolder.contains(node)) {
+                                                    circlesData[batch.name].forEach(circle => circle.remove())
+                                                    circlesData = {}
+                                                    observer.disconnect()
+                                                    break
+                                                }
+                                            } else {
+                                                return
+                                            }
+                                        }
+                                    }
+                                }
+                            })
+
+                            observer.observe(document.body, { childList: true, subtree: true })
                         }
                     })
                 }
@@ -215,7 +240,7 @@
                                     direction: "right"
                                 }
                             },
-                            cssClass: ["absolute", "bg-neutral-300", "bg-opacity-20", "rounded-full", "flex", "justify-center", "items-center", "text-rose-900"]
+                            cssClass: ["absolute", "bg-neutral-300", "bg-opacity-20", "rounded-full"]
                         },
                         {
                             name: "smol",
@@ -235,59 +260,11 @@
                                 inout: {
                                     inner: 250, 
                                     outer: 500,
-                                    to: "inner",
+                                    to: "outer",
                                     amplitude: 1
                                 }
                             },
-                            cssClass: ["absolute", "bg-neutral-300", "bg-opacity-20", "rounded-full", "flex", "justify-center", "items-center", "text-rose-900"]
-                        },
-                        {
-                            name: "smol-left",
-                            radius: 150,
-                            centerPoint: {
-                                x: window.innerWidth/4,
-                                y: window.innerHeight/2
-                            },
-                            circleCount: 30,
-                            width: 40,
-                            height: 40,
-                            speed: 2,
-                            animationType: {
-                                rotate: {
-                                    direction: "left"
-                                },
-                                inout: {
-                                    inner: 50, 
-                                    outer: 300,
-                                    to: "inner",
-                                    amplitude: 1
-                                }
-                            },
-                            cssClass: ["absolute", "bg-neutral-300", "bg-opacity-20", "rounded-full", "flex", "justify-center", "items-center", "text-rose-900"]
-                        },
-                        {
-                            name: "smol-right",
-                            radius: 150,
-                            centerPoint: {
-                                x: window.innerWidth*3/4,
-                                y: window.innerHeight/2
-                            },
-                            circleCount: 30,
-                            width: 40,
-                            height: 40,
-                            speed: 2,
-                            animationType: {
-                                rotate: {
-                                    direction: "left"
-                                },
-                                inout: {
-                                    inner: 50, 
-                                    outer: 300,
-                                    to: "inner",
-                                    amplitude: 1
-                                }
-                            },
-                            cssClass: ["absolute", "bg-neutral-300", "bg-opacity-20", "rounded-full", "flex", "justify-center", "items-center", "text-rose-900"]
+                            cssClass: ["absolute", "bg-neutral-300", "bg-opacity-20", "rounded-full"]
                         }
                     ]
                 })
