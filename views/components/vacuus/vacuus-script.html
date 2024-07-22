@@ -1,7 +1,7 @@
 {{ define "vacuus-script" }}
     {{ if .PageData.BackgroundAnimation }}
         {{ if eq .PageData.BackgroundAnimation "random-bouncing-circles" }}
-            <script>
+            <script defer>
                 function createClass() {
                     return class MovableObject {
                         constructor(element, xMove, yMove) {
@@ -92,206 +92,205 @@
                 initialize()
             </script>
         {{ else if eq .PageData.BackgroundAnimation "circling-circles" }}
-            <script>
-                function createCircles() {
-                    return class Circle {
-                        constructor(id, element, pos, nodes, nodeCount, radius, centers) {
-                            this.id = id
-                            this.element = element
-                            this.pos = pos
-                            this.nodes = nodes
-                            this.nodeCount = nodeCount
-                            this.radius = radius
-                            this.centers = centers
-                            this.toRight = true
+            <script defer>
+                function createNodes(nodeCount) {
+                    let nodes = []
+                    for (let i = 0; i <= nodeCount; i++) {
+                        nodes.push(i / nodeCount * 2 * Math.PI)
+                    }
+                    return nodes
+                }
+
+                function initializev2 (data) {
+                    class Circle {
+                        constructor(circleProp) {
+                            this.circle = circleProp
+                            this.name = this.circle.name
+                            this.element = document.createElement("div")
+                            this.element.classList.add(...this.circle.css)
+                            this.element.style.width = `${this.circle.width}px`
+                            this.element.style.height = `${this.circle.height}px`
                         }
 
-                        setLimitRadius(upper, lower, toUpperRadius) {
-                            this.upperRadius = upper
-                            this.lowerRadius = lower
-                            this.toUpperRadius = toUpperRadius
+                        place(init) {
+                            const x = Math.cos(this.circle.nodes[this.circle.pos]) * this.circle.radius
+                            const y = Math.sin(this.circle.nodes[this.circle.pos]) * this.circle.radius
+                            this.element.style.left = `${this.circle.centerPoint.x + x}px`
+                            this.element.style.top = `${this.circle.centerPoint.y + y}px`
+                            if (init) {
+                                this.element.style.transform = "translate(-50%, -50%)"
+                                this.circle.canvas.appendChild(this.element)
+                            }
                         }
 
-                        move() {
-                            if (this.pos < this.nodeCount && this.toRight) {
-                                this.pos += 1
-                            } else if (!this.toRight && this.pos >= 1) {
-                                this.pos -= 1
-                            } else if (this.pos <= 0) {
-                                this.pos = this.nodeCount
-                            } else if (this.pos >= this.nodeCount) {
-                                this.pos = 0
+                        move(animationType) {
+                            if (animationType.rotate) {
+                                this.rotate(animationType.rotate.direction)
                             }
-                            const xElement = Math.cos(this.nodes[0][this.pos]) * this.radius
-                            const yElement = Math.sin(this.nodes[1][this.pos]) * this.radius
-                            
-
-                            this.element.style.left = `${this.centers[0] + xElement}px`
-                            this.element.style.top = `${this.centers[1] + yElement}px`
-                            this.element.style.transform = "translate(-50%, -50%)"
+                            if (animationType.inout) {
+                                this.inout(animationType.inout.inner, animationType.inout.outer, animationType.inout.to, animationType.inout.amplitude)
+                            }
                         }
 
-                        moveRadius(power, toUpperRadius) {
-                            if (!this.lowerRadius || !this.upperRadius) {
-                                return
+                        rotate(direction) {
+                            if (direction === "right" && this.circle.pos < this.circle.nodeCount) {
+                                this.circle.pos += 1
+                            } else if (direction === "left" && this.circle.pos >= 1) {
+                                this.circle.pos -= 1
+                            } else if (this.circle.pos <= 0) {
+                                this.circle.pos = this.circle.nodeCount
+                            } else if (this.circle.pos >= this.circle.nodeCount) {
+                                this.circle.pos = 0 
                             }
-
-                            if (this.toUpperRadius) {
-                                this.radius += power
-                            } else {
-                                this.radius -= power
-                            }
-
-                            if (this.radius >= this.upperRadius) {
-                                this.toUpperRadius = false
-                            } else if (this.radius <= this.lowerRadius) {
-                                this.toUpperRadius = true
-                            }
-
-                            const xElement = Math.cos(this.nodes[0][this.pos]) * this.radius
-                            const yElement = Math.sin(this.nodes[1][this.pos]) * this.radius
-                            
-
-                            this.element.style.left = `${this.centers[0] + xElement}px`
-                            this.element.style.top = `${this.centers[1] + yElement}px`
-                            this.element.style.transform = "translate(-50%, -50%)"
+                            this.place(false)
                         }
 
-                        remove() {
-                            clearInterval(this.intervalId)
-                            this.element.remove()
+                        inout(inner, outer, to, amplitude) {
+                            if (!this.animation_inout_to) {
+                                this.animation_inout_to = to
+                            }
+                            if (this.animation_inout_to === "outer") {
+                                this.circle.radius += amplitude
+                            } else if (this.animation_inout_to === "inner") {
+                                this.circle.radius -= amplitude
+                            }
+
+                            if (this.circle.radius >= outer) {
+                                this.animation_inout_to = "inner"
+                            } else if (this.circle.radius <= inner) {
+                                this.animation_inout_to = "outer"
+                            }
+                            this.place(false)
                         }
                     }
-                }
-
-                function createNodes(nodes) {
-                    let xNodes = []
-                    let yNodes = []
-                    for (let i = 0; i <= nodes; i++) {
-                        let normalized = i / nodes
-                        let scaled = normalized * 2 * Math.PI
-                        xNodes.push(scaled)
-                        yNodes.push(scaled)
-                    }
-                    return [xNodes, yNodes]
-                }
-
-                function createInitialPositions(objects, nodes) {
-                    let pos = []
-                    for (let i = 0; i < objects; i++) {
-                        let index = Math.floor(nodes / objects * i)
-                        pos.push(index)
-                    }
-                    return pos
-                }
-
-                function plotObject(element, nodes, pos, centers, radius) {
-                    const xElement = Math.cos(nodes[0][pos]) * radius
-                    const yElement = Math.sin(nodes[1][pos]) * radius
-
-                    element.style.left = `${centers[0] + xElement}px`
-                    element.style.top = `${centers[1] + yElement}px`
-                    element.style.transform = "translate(-50%, -50%)"
-                    
-                    return element
-                }
-
-                function prepareCircles(circleCount, radius, size) {
-                    const nodeCount = 1000
-                    const nodes = createNodes(nodeCount)
-                    const pos = createInitialPositions(circleCount, nodeCount)
-                    const centers = [window.innerWidth/2, window.innerHeight/2]
-                    const circleClass = createCircles()
 
                     const scriptHolder = document.getElementById("scriptHolder")
-                    const classes = ["absolute", ...size,  "bg-neutral-300", "bg-opacity-20", "rounded-full"]
+                    const nodes = createNodes(data.nodeCount)
+                    const circlesData = {}
 
-                    const circles = []
+                    data.batches.forEach((batch) => {
+                        circlesData[batch.name] = []
+                        // Create Circles
+                        for (let i = 0; i < batch.circleCount; i++) {
+                            const pos = Math.floor(data.nodeCount / batch.circleCount * i)
+                            const circle = new Circle({
+                                width: batch.width,
+                                height: batch.height,
+                                centerPoint: batch.centerPoint,
+                                radius: batch.radius,
+                                css: batch.cssClass,
+                                nodeCount: data.nodeCount,
+                                nodes,
+                                pos,
+                                canvas: scriptHolder,
+                                name: batch.name+i
+                            })
+                            circle.place(true)
+                            circle.element.innerHTML = i
+                            circlesData[batch.name].push(circle)
 
-                    for (i = 0; i < pos.length; i++) {
-                        let obj = document.createElement("div")
-                        obj.id = "circling-circles-" + i
-                        obj.classList.add(...classes)
-                        obj = plotObject(obj, nodes, pos[i], centers, radius)
-
-                        circles.push(new circleClass(
-                            i, obj, pos[i], nodes, nodeCount, radius, centers
-                        ))
-                        document.getElementById("scriptHolder").appendChild(obj)
-                    }
-                    return circles
-                }
-
-                function initialize(data) {
-                    const container = document.getElementById("scriptHolder")
-
-                    data.forEach((item) => {
-                        radius = item["radius"]
-                        circles = prepareCircles(item["circles"], radius, item["size"])
-                        circles.forEach((circle) => {
                             circle.intervalId = setInterval(() => {
-                                if (item["type"].includes("rotate")) {
-                                    circle.move()
-                                }
-                                if (item["type"].includes("radius")) {
-                                    if (!circle.limitRadiusSet) {
-                                        circle.setLimitRadius(circle.radius, circle.radius-300, true)
-                                        circle.limitRadiusSet = true
-                                    }
-                                    circle.moveRadius(2)
-                                }
-                                if (item["type"].includes("to-left")) {
-                                    circle.toRight = false
-                                }
-                            }, item["speed"]);
-                        })
-                        const observer = new MutationObserver((mutationsList, observer) => {
-                            for (const mutation of mutationsList) {
-                                if (mutation.removedNodes.length > 0) {
-                                    for (const node of mutation.removedNodes) {
-                                        if (container) {
-                                            if (node === container || container.contains(node)) {
-                                                circles.forEach(circle => circle.remove())
-                                                circles = []
-                                                observer.disconnect()
-                                                break
-                                            }
-                                        } else {
-                                            return
-                                        }
-                                    }
-                                }
-                            }
-                        })
-                        
-                        observer.observe(document.body, { childList: true, subtree: true })
+                                circle.move(batch.animationType)
+                            }, batch.speed);
+                        }
                     })
-
-                    
                 }
 
-                initialize([
-                {
-                    "circles": 15,
-                    "radius": 300,
-                    "type": "rotate",
-                    "speed": 20,
-                    "size": ["w-40", "h-40"]
-                },
-                {
-                    "circles": 25,
-                    "radius": 400,
-                    "type": "radius,rotate,to-left",
-                    "speed": 10,
-                    "size": ["w-12", "h-12"]
-                },
-                {
-                    "circles": 10,
-                    "radius": 200,
-                    "type": "rotate,to-left",
-                    "speed": 5,
-                    "size": ["w-20", "h-20"]
-                }])
+                initializev2({
+                    nodeCount: 1000,
+                    batches: [
+                        {
+                            name: "beeg",
+                            radius: 300,
+                            centerPoint: {
+                                x: window.innerWidth/2,
+                                y: window.innerHeight/2
+                            },
+                            circleCount: 13,
+                            width: 120,
+                            height: 120,
+                            speed: 5,
+                            animationType: {
+                                rotate: {
+                                    direction: "right"
+                                }
+                            },
+                            cssClass: ["absolute", "bg-neutral-300", "bg-opacity-20", "rounded-full", "flex", "justify-center", "items-center", "text-rose-900"]
+                        },
+                        {
+                            name: "smol",
+                            radius: 400,
+                            centerPoint: {
+                                x: window.innerWidth/2,
+                                y: window.innerHeight/2
+                            },
+                            circleCount: 30,
+                            width: 40,
+                            height: 40,
+                            speed: 10,
+                            animationType: {
+                                rotate: {
+                                    direction: "left"
+                                },
+                                inout: {
+                                    inner: 250, 
+                                    outer: 500,
+                                    to: "inner",
+                                    amplitude: 1
+                                }
+                            },
+                            cssClass: ["absolute", "bg-neutral-300", "bg-opacity-20", "rounded-full", "flex", "justify-center", "items-center", "text-rose-900"]
+                        },
+                        {
+                            name: "smol-left",
+                            radius: 150,
+                            centerPoint: {
+                                x: window.innerWidth/4,
+                                y: window.innerHeight/2
+                            },
+                            circleCount: 30,
+                            width: 40,
+                            height: 40,
+                            speed: 2,
+                            animationType: {
+                                rotate: {
+                                    direction: "left"
+                                },
+                                inout: {
+                                    inner: 50, 
+                                    outer: 300,
+                                    to: "inner",
+                                    amplitude: 1
+                                }
+                            },
+                            cssClass: ["absolute", "bg-neutral-300", "bg-opacity-20", "rounded-full", "flex", "justify-center", "items-center", "text-rose-900"]
+                        },
+                        {
+                            name: "smol-right",
+                            radius: 150,
+                            centerPoint: {
+                                x: window.innerWidth*3/4,
+                                y: window.innerHeight/2
+                            },
+                            circleCount: 30,
+                            width: 40,
+                            height: 40,
+                            speed: 2,
+                            animationType: {
+                                rotate: {
+                                    direction: "left"
+                                },
+                                inout: {
+                                    inner: 50, 
+                                    outer: 300,
+                                    to: "inner",
+                                    amplitude: 1
+                                }
+                            },
+                            cssClass: ["absolute", "bg-neutral-300", "bg-opacity-20", "rounded-full", "flex", "justify-center", "items-center", "text-rose-900"]
+                        }
+                    ]
+                })
             </script>
         {{ end }}
     {{ end }}
