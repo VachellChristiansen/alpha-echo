@@ -8,7 +8,7 @@
             {{ range $Category, $Animations := .PageData.Animations }}
                 <h2 class="text-wrap text-xl">{{ $Category }} Animations</h2>
                 {{ range $Animations }}
-                    <button hx-put="/r/vacuus/animation" hx-target="#canvas" hx-swap="innerHTML" hx-vals='{ "Category": "{{ $Category }}", "Name": "{{ . }}"}' class="text-start group">
+                    <button hx-put="/r/vacuus/animation" hx-target="#scriptHolder" hx-swap="innerHTML" hx-vals='{ "Category": "{{ $Category }}", "Name": "{{ . }}"}' class="text-start group">
                         <span class="underline underline-offset-4 group-hover:font-bold">{{ VacuusAnimationNameConverter . }}</span>
                     </button>
                 {{ end }}
@@ -138,14 +138,14 @@
     {{ if .PageData.BackgroundAnimation }}
     <div 
         hx-put="/r/vacuus/animation" 
-        hx-target="#canvas" 
+        hx-target="#scriptHolder" 
         hx-swap="innerHTML" 
         hx-vals='{"Category": "Background", "Name": "{{ .PageData.BackgroundAnimation }}"}'
         hx-trigger="load">
     </div>
     {{ end }}
 
-    <div id="canvas" class="absolute z-0 w-full h-full">
+    <div id="scriptHolder" class="absolute z-0 w-full h-full">
     </div>
 </div>
 {{ end }}

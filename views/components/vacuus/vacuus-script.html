@@ -5,37 +5,37 @@
                 function createClass() {
                     return class MovableObject {
                         constructor(element, xMove, yMove) {
-                            this.element = element;
-                            this.xPos = Math.random() * 1500;
-                            this.yPos = Math.random() * 600;
-                            this.goLeft = Math.random() > 0.5;
-                            this.goUp = Math.random() > 0.5;
-                            this.xMove = xMove;
-                            this.yMove = yMove;
+                            this.element = element
+                            this.xPos = Math.random() * 1500
+                            this.yPos = Math.random() * 600
+                            this.goLeft = Math.random() > 0.5
+                            this.goUp = Math.random() > 0.5
+                            this.xMove = xMove
+                            this.yMove = yMove
                         }
 
                         move() {
                             if (this.element.offsetWidth + this.element.offsetLeft > window.innerWidth) {
-                                this.goLeft = true;
+                                this.goLeft = true
                             } else if (this.element.offsetLeft < 0) {
-                                this.goLeft = false;
+                                this.goLeft = false
                             }
 
                             if (this.element.offsetHeight + this.element.offsetTop > window.innerHeight) {
-                                this.goUp = true;
+                                this.goUp = true
                             } else if (this.element.offsetTop < 0) {
-                                this.goUp = false;
+                                this.goUp = false
                             }
 
-                            this.xPos = this.goLeft ? this.xPos - this.xMove : this.xPos + this.xMove;
-                            this.yPos = this.goUp ? this.yPos - this.yMove : this.yPos + this.yMove;
+                            this.xPos = this.goLeft ? this.xPos - this.xMove : this.xPos + this.xMove
+                            this.yPos = this.goUp ? this.yPos - this.yMove : this.yPos + this.yMove
 
-                            this.element.style.left = `${this.xPos}px`;
-                            this.element.style.top = `${this.yPos}px`;
+                            this.element.style.left = `${this.xPos}px`
+                            this.element.style.top = `${this.yPos}px`
                         }
 
                         remove() {
-                            clearInterval(this.intervalId);
+                            clearInterval(this.intervalId)
                             this.element.remove()
                         }
                     }
@@ -43,24 +43,21 @@
 
                 function createMovableObject(container, xMove, yMove, id) {
                     const MovableObject = createClass()
-                    const obj = document.createElement('div');
-                    obj.id = "Object"+id
-                    obj.classList.add('obj');
-                    obj.classList.add("bg-neutral-200")
-                    obj.classList.add("bg-opacity-20")
-                    obj.classList.add("absolute")
-                    obj.classList.add("rounded-full")
+                    const obj = document.createElement('div')
+                    const classes = ["obj", "absolute", "bg-neutral-200", "bg-opacity-20", "rounded-full"]
+                    obj.id = "random-bouncing-circles-"+id
+                    obj.classList.add(...classes)
                     obj.style.width = "250px"
                     obj.style.height = "250px"
-                    container.appendChild(obj);
-                    return new MovableObject(obj, xMove, yMove);
+                    container.appendChild(obj)
+                    return new MovableObject(obj, xMove, yMove)
                 }
 
                 function initialize() {
-                    const container = document.getElementById('canvas');
-                    let objects = [];
-                    for (let i = 0; i < 5; i++) {
-                        if (container.querySelector("#Object"+i)) {
+                    const container = document.getElementById('scriptHolder')
+                    let objects = []
+                    for (let i = 0; i < 8; i++) {
+                        if (container.querySelector("#random-bouncing-circles"+i)) {
                             return
                         }
                         const xMove = Math.random() * (10 - 5) + 5
@@ -76,10 +73,10 @@
                                 for (const node of mutation.removedNodes) {
                                     if (container) {
                                         if (node === container || container.contains(node)) {
-                                            objects.forEach(obj => obj.remove());
+                                            objects.forEach(obj => obj.remove())
                                             objects = []
-                                            observer.disconnect();
-                                            break;
+                                            observer.disconnect()
+                                            break
                                         }
                                     } else {
                                         return
@@ -87,12 +84,214 @@
                                 }
                             }
                         }
-                    });
+                    })
                     
-                    observer.observe(document.body, { childList: true, subtree: true });
+                    observer.observe(document.body, { childList: true, subtree: true })
                 }
                 
                 initialize()
+            </script>
+        {{ else if eq .PageData.BackgroundAnimation "circling-circles" }}
+            <script>
+                function createCircles() {
+                    return class Circle {
+                        constructor(id, element, pos, nodes, nodeCount, radius, centers) {
+                            this.id = id
+                            this.element = element
+                            this.pos = pos
+                            this.nodes = nodes
+                            this.nodeCount = nodeCount
+                            this.radius = radius
+                            this.centers = centers
+                            this.toRight = true
+                        }
+
+                        setLimitRadius(upper, lower, toUpperRadius) {
+                            this.upperRadius = upper
+                            this.lowerRadius = lower
+                            this.toUpperRadius = toUpperRadius
+                        }
+
+                        move() {
+                            if (this.pos < this.nodeCount && this.toRight) {
+                                this.pos += 1
+                            } else if (!this.toRight && this.pos >= 1) {
+                                this.pos -= 1
+                            } else if (this.pos <= 0) {
+                                this.pos = this.nodeCount
+                            } else if (this.pos >= this.nodeCount) {
+                                this.pos = 0
+                            }
+                            const xElement = Math.cos(this.nodes[0][this.pos]) * this.radius
+                            const yElement = Math.sin(this.nodes[1][this.pos]) * this.radius
+                            
+
+                            this.element.style.left = `${this.centers[0] + xElement}px`
+                            this.element.style.top = `${this.centers[1] + yElement}px`
+                            this.element.style.transform = "translate(-50%, -50%)"
+                        }
+
+                        moveRadius(power, toUpperRadius) {
+                            if (!this.lowerRadius || !this.upperRadius) {
+                                return
+                            }
+
+                            if (this.toUpperRadius) {
+                                this.radius += power
+                            } else {
+                                this.radius -= power
+                            }
+
+                            if (this.radius >= this.upperRadius) {
+                                this.toUpperRadius = false
+                            } else if (this.radius <= this.lowerRadius) {
+                                this.toUpperRadius = true
+                            }
+
+                            const xElement = Math.cos(this.nodes[0][this.pos]) * this.radius
+                            const yElement = Math.sin(this.nodes[1][this.pos]) * this.radius
+                            
+
+                            this.element.style.left = `${this.centers[0] + xElement}px`
+                            this.element.style.top = `${this.centers[1] + yElement}px`
+                            this.element.style.transform = "translate(-50%, -50%)"
+                        }
+
+                        remove() {
+                            clearInterval(this.intervalId)
+                            this.element.remove()
+                        }
+                    }
+                }
+
+                function createNodes(nodes) {
+                    let xNodes = []
+                    let yNodes = []
+                    for (let i = 0; i <= nodes; i++) {
+                        let normalized = i / nodes
+                        let scaled = normalized * 2 * Math.PI
+                        xNodes.push(scaled)
+                        yNodes.push(scaled)
+                    }
+                    return [xNodes, yNodes]
+                }
+
+                function createInitialPositions(objects, nodes) {
+                    let pos = []
+                    for (let i = 0; i < objects; i++) {
+                        let index = Math.floor(nodes / objects * i)
+                        pos.push(index)
+                    }
+                    return pos
+                }
+
+                function plotObject(element, nodes, pos, centers, radius) {
+                    const xElement = Math.cos(nodes[0][pos]) * radius
+                    const yElement = Math.sin(nodes[1][pos]) * radius
+
+                    element.style.left = `${centers[0] + xElement}px`
+                    element.style.top = `${centers[1] + yElement}px`
+                    element.style.transform = "translate(-50%, -50%)"
+                    
+                    return element
+                }
+
+                function prepareCircles(circleCount, radius, size) {
+                    const nodeCount = 1000
+                    const nodes = createNodes(nodeCount)
+                    const pos = createInitialPositions(circleCount, nodeCount)
+                    const centers = [window.innerWidth/2, window.innerHeight/2]
+                    const circleClass = createCircles()
+
+                    const scriptHolder = document.getElementById("scriptHolder")
+                    const classes = ["absolute", ...size,  "bg-neutral-300", "bg-opacity-20", "rounded-full"]
+
+                    const circles = []
+
+                    for (i = 0; i < pos.length; i++) {
+                        let obj = document.createElement("div")
+                        obj.id = "circling-circles-" + i
+                        obj.classList.add(...classes)
+                        obj = plotObject(obj, nodes, pos[i], centers, radius)
+
+                        circles.push(new circleClass(
+                            i, obj, pos[i], nodes, nodeCount, radius, centers
+                        ))
+                        document.getElementById("scriptHolder").appendChild(obj)
+                    }
+                    return circles
+                }
+
+                function initialize(data) {
+                    const container = document.getElementById("scriptHolder")
+
+                    data.forEach((item) => {
+                        radius = item["radius"]
+                        circles = prepareCircles(item["circles"], radius, item["size"])
+                        circles.forEach((circle) => {
+                            circle.intervalId = setInterval(() => {
+                                if (item["type"].includes("rotate")) {
+                                    circle.move()
+                                }
+                                if (item["type"].includes("radius")) {
+                                    if (!circle.limitRadiusSet) {
+                                        circle.setLimitRadius(circle.radius, circle.radius-300, true)
+                                        circle.limitRadiusSet = true
+                                    }
+                                    circle.moveRadius(2)
+                                }
+                                if (item["type"].includes("to-left")) {
+                                    circle.toRight = false
+                                }
+                            }, item["speed"]);
+                        })
+                        const observer = new MutationObserver((mutationsList, observer) => {
+                            for (const mutation of mutationsList) {
+                                if (mutation.removedNodes.length > 0) {
+                                    for (const node of mutation.removedNodes) {
+                                        if (container) {
+                                            if (node === container || container.contains(node)) {
+                                                circles.forEach(circle => circle.remove())
+                                                circles = []
+                                                observer.disconnect()
+                                                break
+                                            }
+                                        } else {
+                                            return
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                        
+                        observer.observe(document.body, { childList: true, subtree: true })
+                    })
+
+                    
+                }
+
+                initialize([
+                {
+                    "circles": 15,
+                    "radius": 300,
+                    "type": "rotate",
+                    "speed": 20,
+                    "size": ["w-40", "h-40"]
+                },
+                {
+                    "circles": 25,
+                    "radius": 400,
+                    "type": "radius,rotate,to-left",
+                    "speed": 10,
+                    "size": ["w-12", "h-12"]
+                },
+                {
+                    "circles": 10,
+                    "radius": 200,
+                    "type": "rotate,to-left",
+                    "speed": 5,
+                    "size": ["w-20", "h-20"]
+                }])
             </script>
         {{ end }}
     {{ end }}

@@ -26,6 +26,10 @@ func seedAnimation(db *gorm.DB) error {
 			Name:     "random-bouncing-circles",
 			Category: "Background",
 		},
+		{
+			Name:     "circling-circles",
+			Category: "Background",
+		},
 	}
 
 	tx := db.Begin()
