@@ -144,6 +144,11 @@ func main() {
 			vacuus.GET("/", h.VacuusHandler.Default)
 			vacuus.PUT("/animation", h.VacuusHandler.UpdateAnimation)
 		}
+
+		nuntius := regular.Group("/nuntius")
+		{
+			nuntius.GET("/", h.NuntiusHandler.Default)
+		}
 	}
 
 	e.Start(os.Getenv("APP_PORT"))
