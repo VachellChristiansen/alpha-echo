@@ -88,6 +88,8 @@ func seedProjects(db *gorm.DB) error {
 	tags := []string{
 		"ML,Tools",
 		"Tools",
+		"ML,Tools,Experimental",
+		"Experimental",
 		"Tools",
 		"Tools,Experimental",
 	}
