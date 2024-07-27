@@ -1,5 +1,13 @@
 {{ define "nuntius" }}
-<div id="nuntius" class="w-full h-full bg-zinc-200 text-neutral-900 font-montserrat">
-    Hello World!
+<div id="nuntius" class="relative z-0 w-full h-full bg-stone-200 text-stone-900 font-montserrat">
+    <button hx-get="/projects" hx-target="body" class="absolute left-4 top-4 w-20 h-20 flex justify-center items-center bg-stone-300 rounded-full">
+        <i class="fa-solid fa-arrow-left fa-2xl"></i>
+    </button>
+
+    <div class="absolute left-1/2 -translate-x-1/2 w-2/5 h-full py-4">
+        <div class="w-full h-full bg-emerald-400">
+            
+        </div>
+    </div>
 </div>
 {{ end }}
