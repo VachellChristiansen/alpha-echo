@@ -60,7 +60,7 @@ func seedProjects(db *gorm.DB) error {
 			Name:            "Vacuus",
 			Description:     "Sandbox of whatever.",
 			PagePath:        "/r/vacuus",
-			ExternalPath:    fmt.Sprintf("%s/vacuus", os.Getenv("ML_URL")),
+			ExternalPath:    fmt.Sprintf("%s/vacuus", os.Getenv("ML_DOMAIN")),
 			RegularAccessID: 4,
 		},
 		{
