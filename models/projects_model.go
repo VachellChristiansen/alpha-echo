@@ -57,6 +57,20 @@ func seedProjects(db *gorm.DB) error {
 			RegularAccessID: 4,
 		},
 		{
+			Name:            "Nuntius",
+			Description:     "A Text To Speech System for Final Year Project.",
+			PagePath:        "/r/nuntius",
+			ExternalPath:    fmt.Sprintf("%s/nuntius", os.Getenv("ML_DOMAIN")),
+			RegularAccessID: 4,
+		},
+		{
+			Name:            "Vacuus",
+			Description:     "Sandbox of whatever.",
+			PagePath:        "/r/vacuus",
+			ExternalPath:    fmt.Sprintf("%s/vacuus", os.Getenv("ML_URL")),
+			RegularAccessID: 4,
+		},
+		{
 			Name:            "Chrysus",
 			Description:     "Finance Management tool.",
 			PagePath:        "/r/chrysus",
@@ -70,20 +84,14 @@ func seedProjects(db *gorm.DB) error {
 			ExternalPath:    fmt.Sprintf("%s/elpida", os.Getenv("ML_DOMAIN")),
 			RegularAccessID: 4,
 		},
-		{
-			Name:            "Vacuus",
-			Description:     "Sandbox of whatever.",
-			PagePath:        "/r/vacuus",
-			ExternalPath:    fmt.Sprintf("%s/vacuus", os.Getenv("ML_URL")),
-			RegularAccessID: 4,
-		},
 	}
 	tags := []string{
 		"ML,Tools",
 		"Tools",
+		"ML,Tools,Experimental",
+		"Experimental",
 		"Tools",
 		"Tools,Experimental",
-		"Experimental",
 	}
 
 	tx := db.Begin()
