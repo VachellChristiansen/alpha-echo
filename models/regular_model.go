@@ -95,14 +95,23 @@ func seedRegular(db *gorm.DB) error {
 			Email:    "guest@alpha.com",
 			Password: "guestAlpha",
 		},
+		{
+			Name:     "Nuntius Agent",
+			Email:    "nuntius@alpha.com",
+			Password: "nuntiusAgent",
+		},
 	}
 
-	var (
-		access RegularAccess
-	)
+	accesses := []string{
+		"Guest",
+		"Regular",
+	}
 
 	tx := db.Begin()
-	for _, regular := range regulars {
+	for i, regular := range regulars {
+		var (
+			access RegularAccess
+		)
 		// TODO: Hash Password
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(regular.Password), 8)
 		if err != nil {
@@ -111,7 +120,7 @@ func seedRegular(db *gorm.DB) error {
 		regular.Password = string(hashedPassword)
 
 		// TODO: Define Default Access
-		if err := db.Where("access = ?", "Guest").First(&access).Error; err != nil {
+		if err := db.Where("access = ?", accesses[i]).First(&access).Error; err != nil {
 			return err
 		}
 		regular.RegularAccessID = access.ID

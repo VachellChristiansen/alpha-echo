@@ -8,7 +8,7 @@
         <div class="relative z-10 w-full h-full">
             <div id="chat" class="absolute z-20 top-0 w-full ">
             </div>
-            <form hx-post="" hx-swap="#" class="absolute z-30 bottom-0 w-full px-5 py-3 flex gap-2 bg-stone-300 rounded-3xl">
+            <form id="tts_form" hx-post="/r/nuntius/text" hx-swap="#chat" class="absolute z-30 bottom-0 w-full px-5 py-3 flex gap-2 bg-stone-300 rounded-3xl">
                 <textarea name="input" id="input" rows="1" class="w-full bg-transparent resize-none focus:outline-none" placeholder="Input your text..."></textarea>
                 <button type="submit" ><i class="fa-solid fa-paper-plane fa-xl"></i></button>
             </form>
@@ -17,12 +17,17 @@
 
     <script>
         function init() {
+            const form = document.getElementById("tts_form")
             const input = document.getElementById("input")
             function resize() {
                 input.style.height = "auto"
                 input.style.height = (input.scrollHeight) + "px"
             }
+            function clearInput() {
+                form.reset()
+            }
             input.addEventListener("input", resize)
+            form.addEventListener("submit", clearInput)
             resize()
         }
 
