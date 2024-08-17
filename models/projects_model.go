@@ -57,13 +57,6 @@ func seedProjects(db *gorm.DB) error {
 			RegularAccessID: 4,
 		},
 		{
-			Name:            "Nuntius",
-			Description:     "A Text To Speech System for Final Year Project.",
-			PagePath:        "/r/nuntius",
-			ExternalPath:    fmt.Sprintf("%s/nuntius", os.Getenv("ML_DOMAIN")),
-			RegularAccessID: 4,
-		},
-		{
 			Name:            "Vacuus",
 			Description:     "Sandbox of whatever.",
 			PagePath:        "/r/vacuus",
