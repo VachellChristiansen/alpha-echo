@@ -78,6 +78,16 @@ func seedProjects(db *gorm.DB) error {
 		},
 		{
 			Project: Project{
+				Name:            "Loquela",
+				Description:     "Language resources, hope this handles UTF-8 correctly.",
+				PagePath:        "/r/loquela",
+				ExternalPath:    fmt.Sprintf("%s/loquela", os.Getenv("ML_DOMAIN")),
+				RegularAccessID: 4,
+			},
+			Tags: "Experimental",
+		},
+		{
+			Project: Project{
 				Name:            "Chrysus",
 				Description:     "Finance Management tool.",
 				PagePath:        "/r/chrysus",
