@@ -6,6 +6,7 @@ module.exports = {
     "./views/components/opus/*.{html,js}",
     "./views/components/chrysus/*.{html,js}",
     "./views/components/vacuus/*.{html,js}",
+    "./views/components/loquela/*.{html,js}",
   ],
   theme: {
     extend: {
