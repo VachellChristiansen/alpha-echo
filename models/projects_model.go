@@ -41,63 +41,74 @@ func SeedProjects(db *gorm.DB) error {
 }
 
 func seedProjects(db *gorm.DB) error {
-	projects := []Project{
+	type ProjectWithTag struct {
+		Project Project
+		Tags string
+	}
+	projects := []ProjectWithTag{
 		{
-			Name:            "Proximus",
-			Description:     "Machine learning projects.",
-			PagePath:        "/a/proximus",
-			ExternalPath:    fmt.Sprintf("%s/proximus", os.Getenv("ML_DOMAIN")),
-			RegularAccessID: 1,
+			Project: Project{
+				Name:            "Proximus",
+				Description:     "Machine learning projects.",
+				PagePath:        "/a/proximus",
+				ExternalPath:    fmt.Sprintf("%s/proximus", os.Getenv("ML_DOMAIN")),
+				RegularAccessID: 1,
+			},
+			Tags: "ML,Tools",
 		},
 		{
-			Name:            "Opus",
-			Description:     "Task management tool.",
-			PagePath:        "/r/opus",
-			ExternalPath:    fmt.Sprintf("%s/opus", os.Getenv("ML_DOMAIN")),
-			RegularAccessID: 4,
+			Project: Project{
+				Name:            "Opus",
+				Description:     "Task management tool.",
+				PagePath:        "/r/opus",
+				ExternalPath:    fmt.Sprintf("%s/opus", os.Getenv("ML_DOMAIN")),
+				RegularAccessID: 4,
+			},
+			Tags: "Tools",
 		},
 		{
-			Name:            "Vacuus",
-			Description:     "Sandbox of whatever.",
-			PagePath:        "/r/vacuus",
-			ExternalPath:    fmt.Sprintf("%s/vacuus", os.Getenv("ML_DOMAIN")),
-			RegularAccessID: 4,
+			Project: Project{
+				Name:            "Vacuus",
+				Description:     "Sandbox of whatever.",
+				PagePath:        "/r/vacuus",
+				ExternalPath:    fmt.Sprintf("%s/vacuus", os.Getenv("ML_DOMAIN")),
+				RegularAccessID: 4,
+			},
+			Tags: "Experimental",
 		},
 		{
-			Name:            "Chrysus",
-			Description:     "Finance Management tool.",
-			PagePath:        "/r/chrysus",
-			ExternalPath:    fmt.Sprintf("%s/chrysus", os.Getenv("ML_DOMAIN")),
-			RegularAccessID: 4,
+			Project: Project{
+				Name:            "Chrysus",
+				Description:     "Finance Management tool.",
+				PagePath:        "/r/chrysus",
+				ExternalPath:    fmt.Sprintf("%s/chrysus", os.Getenv("ML_DOMAIN")),
+				RegularAccessID: 4,
+			},
+			Tags: "Tools",
 		},
 		{
-			Name:            "Elpida",
-			Description:     "Finding more efficient means to run a program.",
-			PagePath:        "/r/elpida",
-			ExternalPath:    fmt.Sprintf("%s/elpida", os.Getenv("ML_DOMAIN")),
-			RegularAccessID: 4,
+			Project: Project{
+				Name:            "Elpida",
+				Description:     "Finding more efficient means to run a program.",
+				PagePath:        "/r/elpida",
+				ExternalPath:    fmt.Sprintf("%s/elpida", os.Getenv("ML_DOMAIN")),
+				RegularAccessID: 4,
+			},
+			Tags: "Tools,Experimental",
 		},
 	}
-	tags := []string{
-		"ML,Tools",
-		"Tools",
-		"ML,Tools,Experimental",
-		"Experimental",
-		"Tools",
-		"Tools,Experimental",
-	}
-
+	
 	tx := db.Begin()
-	for index, project := range projects {
+	for _, project := range projects {
 		var tagData []ProjectTag
-		if err := db.Where("name IN ?", strings.Split(tags[index], ",")).Find(&tagData).Error; err != nil {
+		if err := db.Where("name IN ?", strings.Split(project.Tags, ",")).Find(&tagData).Error; err != nil {
 			tx.Rollback()
 			return err
 		}
 
-		project.ProjectTags = tagData
+		project.Project.ProjectTags = tagData
 
-		if err := tx.Create(&project).Error; err != nil {
+		if err := tx.Create(&project.Project).Error; err != nil {
 			tx.Rollback()
 			return err
 		}
