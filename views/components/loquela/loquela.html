@@ -1,5 +1,9 @@
 {{ define "loquela" }}
-<div id="loquela">
-    Hello World
+<div id="loquela" x-data="{ Loquela: {} }" x-init="$nextTick(() => {initLoquela()})" class="w-screen h-screen bg-yellow-50 text-yellow-900 font-jsans">
+    <div class="w-full h-full flex flex-col">
+        {{ template "loquela-header" . }}
+        {{ template "loquela-content" . }}
+        {{ template "loquela-footer" }}
+    </div>
 </div>
 {{ end }}

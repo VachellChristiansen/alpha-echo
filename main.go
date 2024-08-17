@@ -144,6 +144,12 @@ func main() {
 			vacuus.GET("/", h.VacuusHandler.Default)
 			vacuus.PUT("/animation", h.VacuusHandler.UpdateAnimation)
 		}
+
+		loquela := regular.Group("/loquela")
+		{
+			loquela.GET("/", h.LoquelaHandler.Default)
+			loquela.GET("/flashcard", h.LoquelaHandler.Flashcard)
+		}
 	}
 
 	e.Start(os.Getenv("APP_PORT"))

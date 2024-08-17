@@ -1,0 +1,18 @@
+{{ define "loquela-content" }}
+<main id="loquela-content" class="w-full flex-1 xl:px-60 lg:px-36 md:px-24 px-12">
+    {{ if eq .PageData.Location "default" }}
+    <div id="content" class="w-full h-full flex gap-4">
+        <div class="w-full h-full flex flex-col justify-center gap-2 bg-rose-200">
+            <h1 class="font-bold text-4xl">Loquela</h1>
+            <p>A way for me to learn languages by building some systems that revolves around languages</p>
+        </div>
+        <div class="w-full h-full flex flex-col justify-center gap-2 bg-lime-200">
+            <h1 class="font-bold text-4xl">Some screenshots/demo</h1>
+            <p>Slidescrolling features for this project</p>
+        </div>
+    </div>
+    {{ else if eq .PageData.Location "flashcard" }}
+        {{ template "loquela-flashcard" }}
+    {{ end }}
+</main>
+{{ end }}
