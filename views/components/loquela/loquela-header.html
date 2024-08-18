@@ -1,18 +1,17 @@
 {{ define "loquela-header" }}
 <header id="loquela-header" class="w-full h-12 bg-yellow-200">
     <div class="w-full h-full xl:px-60 lg:px-36 md:px-24 px-12">
-        <div class="w-full h-full flex items-center justify-between">
-            {{ if eq .PageData.Location "default" }}
+        <div x-show="$store.Loquela.location == 'default'" class="w-full h-full flex items-center justify-between">
             <span class="font-bold text-2xl">Loquela</span>
             <nav class="flex justify-around items-center gap-4">
-                <button id="flashcard" hx-get="/r/loquela/flashcard" hx-target="#loquela" hx-swap="outerHTML" class="hover:underline-offset-4 hover:underline">Flashcard</button>
-                <button id="back" hx-get="/projects" hx-target="body" class="hover:underline-offset-4 hover:underline">Back</button>
+                <button id="loquela-redirect-flashcard" @click="$store.Loquela.location = 'flashcard'" hx-get="/r/loquela/flashcard" hx-target="#loquela-content" hx-swap="outerHTML" class="hover:underline-offset-4 hover:underline">Flashcard</button>
+                <button id="loquela-redirect-back" hx-get="/projects" hx-target="body" class="hover:underline-offset-4 hover:underline">Back</button>
             </nav>
-            {{ else if eq .PageData.Location "flashcard"}}
-            <button hx-get="/r/loquela/" hx-target="body"><i class="fa-arrow-left fa-solid fa-2xl"></i></button>
+        </div>
+        <div x-show="$store.Loquela.location == 'flashcard'" class="w-full h-full flex items-center justify-between">
+            <button id="loquela-redirect-default" @click="$store.Loquela.location = 'default'" hx-get="/r/loquela/home" hx-target="#loquela-content" hx-swap="outerHTML"><i class="fa-arrow-left fa-solid fa-2xl"></i></button>
             <span class="font-bold text-2xl">Loquela's<span class="font-normal"> Flashcard</span></span>
-            <button class="opacity-0"><i class="fa-arrow-left fa-solid fa-2xl"></i></button>
-            {{ end }}
+            <button id="loquela-hidden-balancer" class="opacity-0"><i class="fa-arrow-right fa-solid fa-2xl"></i></button>
         </div>
     </div>
 </header>

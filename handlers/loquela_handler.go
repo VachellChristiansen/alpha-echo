@@ -12,6 +12,7 @@ import (
 
 type LoquelaHandler interface {
 	Default(c echo.Context) error
+	Home(c echo.Context) error
 	Flashcard(c echo.Context) error
 }
 
@@ -34,6 +35,7 @@ func (h *LoquelaHandlerImpl) Default(c echo.Context) error {
 
 	regular.RegularSession.RegularState.Page = "loquela"
 	regular.RegularSession.RegularState.PageData = map[string]interface{}{
+		"Refresh":  true,
 		"Location": "default",
 	}
 	regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
@@ -43,6 +45,21 @@ func (h *LoquelaHandlerImpl) Default(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "body", regular.RegularSession.RegularState)
+}
+
+func (h *LoquelaHandlerImpl) Home(c echo.Context) error {
+	regular := c.Get("regular").(models.Regular)
+
+	regular.RegularSession.RegularState.PageData = map[string]interface{}{
+		"Location": "default",
+	}
+	regular.RegularSession.RegularState.PageDataStore = convertToDatabyte(regular.RegularSession.RegularState.PageData, h.logger)
+
+	if err := saveState(c, &regular, h.db, h.logger); err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "loquela-content", regular.RegularSession.RegularState)
 }
 
 func (h *LoquelaHandlerImpl) Flashcard(c echo.Context) error {
@@ -57,5 +74,5 @@ func (h *LoquelaHandlerImpl) Flashcard(c echo.Context) error {
 		return err
 	}
 
-	return c.Render(http.StatusOK, "loquela", regular.RegularSession.RegularState)
+	return c.Render(http.StatusOK, "loquela-content", regular.RegularSession.RegularState)
 }

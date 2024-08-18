@@ -1,9 +1,22 @@
 {{ define "loquela" }}
-<div id="loquela" x-data="{ Loquela: {} }" x-init="$nextTick(() => {initLoquela()})" class="w-screen h-screen bg-yellow-50 text-yellow-900 font-jsans">
+<div id="loquela" x-data="{ Loquela: {} }" x-init="initLoquela()" class="w-screen h-screen bg-yellow-50 text-yellow-900 font-jsans">
     <div class="w-full h-full flex flex-col">
         {{ template "loquela-header" . }}
         {{ template "loquela-content" . }}
         {{ template "loquela-footer" }}
     </div>
+    {{ if .PageData.Refresh }}
+    <script>
+        location.reload()
+    </script>
+    {{ end }}
+    <script>
+        function initLoquela() {
+            return Alpine.store('Loquela', {
+                location: "{{ .PageData.Location }}",
+            })
+        }
+        console.clear()
+    </script>
 </div>
 {{ end }}

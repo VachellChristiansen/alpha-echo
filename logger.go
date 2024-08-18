@@ -13,11 +13,12 @@ func NewLogger() Logger {
 		err error
 	)
 	logFilenames := map[string]string{
-		"INFO":    "info.log",
-		"WARNING": "warning.log",
-		"ERROR":   "error.log",
-		"MISC":    "misc.log",
-		"TASK":    "task.log",
+		"INFO":     "info.log",
+		"WARNING":  "warning.log",
+		"ERROR":    "error.log",
+		"MISC":     "misc.log",
+		"TASK":     "task.log",
+		"EXTERNAL": "external.log",
 	}
 	logFiles := make(map[string]*os.File)
 	logs := make(map[string]*log.Logger)

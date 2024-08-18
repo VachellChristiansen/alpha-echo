@@ -1,6 +1,7 @@
 package main
 
 import (
+	external_loquela "alpha-echo/external/loquela"
 	"alpha-echo/handlers"
 	"flag"
 	"fmt"
@@ -19,10 +20,12 @@ import (
 // Command Line Flagging
 var runTask string
 var envFile string
+var prepMandarin string
 
 func init() {
-	flag.StringVar(&runTask, "runTask", "", "Run tasks. Available: MigrateModels, SeedModels")
+	flag.StringVar(&runTask, "runTask", "", "Run tasks. Available: MigrateModels, SeedModels, PrepareMandarin")
 	flag.StringVar(&envFile, "envFile", ".env.dev", "Environment file name")
+	flag.StringVar(&prepMandarin, "prepMandarin", "", "Prepare Mandarin Audios for [Loquela]")
 	flag.Parse()
 }
 
@@ -98,6 +101,14 @@ func main() {
 		return
 	}
 
+	if prepMandarin == "yes" {
+		ss := external_loquela.NewSpeechSynthesizer("Mandarin", "Male", 1, db, logger)
+		ss.BuildRequest("在爱的触动下，每个人都成为诗人")
+		ss.BuildUrl()
+		ss.Synthesize("")
+		return
+	}
+
 	// Static Files
 	static := e.Group("/static")
 
@@ -148,6 +159,7 @@ func main() {
 		loquela := regular.Group("/loquela")
 		{
 			loquela.GET("/", h.LoquelaHandler.Default)
+			loquela.GET("/home", h.LoquelaHandler.Home)
 			loquela.GET("/flashcard", h.LoquelaHandler.Flashcard)
 		}
 	}

@@ -36,6 +36,7 @@ func migrateModels(db *gorm.DB) func() {
 		models.MigrateProjects(db)
 		models.MigrateOpus(db)
 		models.MigrateVacuus(db)
+		models.MigrateLoquela(db)
 	}
 }
 
