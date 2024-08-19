@@ -54,7 +54,7 @@ func MigrateRegular(db *gorm.DB) {
 }
 
 func SeedRegular(db *gorm.DB) error {
-	if err := seedAccess(db); err != nil {
+	if err := seedRegularAccess(db); err != nil {
 		return err
 	}
 	if err := seedRegular(db); err != nil {
@@ -64,7 +64,7 @@ func SeedRegular(db *gorm.DB) error {
 	return nil
 }
 
-func seedAccess(db *gorm.DB) error {
+func seedRegularAccess(db *gorm.DB) error {
 	accesses := []RegularAccess{
 		{Access: "Administrator"},
 		{Access: "Developer"},
