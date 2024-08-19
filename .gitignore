@@ -1,6 +1,7 @@
 logs/
 node_modules/
 tmp/
+asset/
 
 .env.dev
 .env.prod
