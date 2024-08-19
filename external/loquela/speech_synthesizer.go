@@ -35,7 +35,6 @@ type SpeechSynthesizerImpl struct {
 	Audio    int
 	Request  *WebsocketRequest
 	URL      string
-	db       *gorm.DB
 	logger   map[string]*log.Logger
 }
 
@@ -54,7 +53,6 @@ func NewSpeechSynthesizer(language, gender string, audio int, db *gorm.DB, logge
 		Language: language,
 		Gender:   gender,
 		Audio:    audio,
-		db:       db,
 		logger:   logger,
 	}
 }

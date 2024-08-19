@@ -20,12 +20,12 @@ import (
 // Command Line Flagging
 var runTask string
 var envFile string
-var prepMandarin string
+var prepLanguage string
 
 func init() {
 	flag.StringVar(&runTask, "runTask", "", "Run tasks. Available: MigrateModels, SeedModels, PrepareMandarin")
 	flag.StringVar(&envFile, "envFile", ".env.dev", "Environment file name")
-	flag.StringVar(&prepMandarin, "prepMandarin", "", "Prepare Mandarin Audios for [Loquela]")
+	flag.StringVar(&prepLanguage, "prepLanguage", "", "Prepare Language Audios for [Loquela]")
 	flag.Parse()
 }
 
@@ -101,7 +101,7 @@ func main() {
 		return
 	}
 
-	if prepMandarin == "yes" {
+	if prepLanguage == "mandarin" {
 		ss := external_loquela.NewSpeechSynthesizer("Mandarin", "Male", 1, db, logger)
 		ss.BuildRequest("在爱的触动下，每个人都成为诗人")
 		ss.BuildUrl()

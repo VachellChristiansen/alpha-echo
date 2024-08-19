@@ -26,3 +26,33 @@ func MigrateLoquela(db *gorm.DB) {
 	db.AutoMigrate(LoquelaLanguage{})
 	db.AutoMigrate(LoquelaVocabulary{})
 }
+
+func SeedLoquela(db *gorm.DB) error {
+	if err := seedLoquelaLanguage(db); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func seedLoquelaLanguage(db *gorm.DB) error {
+	languages := []LoquelaLanguage{
+		{Language: "Mandarin"},
+		{Language: "English"},
+		{Language: "Russian"},
+	}
+
+	tx := db.Begin()
+	for _, language := range languages {
+		if err := tx.Create(&language).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
+}
