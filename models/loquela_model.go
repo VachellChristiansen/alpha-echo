@@ -1,6 +1,9 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
+)
 
 type LoquelaLanguage struct {
 	gorm.Model
@@ -10,10 +13,12 @@ type LoquelaLanguage struct {
 
 type LoquelaVocabulary struct {
 	gorm.Model
-	Word       string `gorm:"type:text"`
-	Meaning    string `gorm:"type:text"`
-	Reading    string `gorm:"type:text"`
-	AudioPath  string `gorm:"type:text"`
+	Word              string                 `gorm:"type:text"`
+	Meaning           string                 `gorm:"type:text"`
+	Reading           string                 `gorm:"type:text"`
+	AudioPath         string                 `gorm:"type:text"`
+	MetadataStore     datatypes.JSON         `gorm:"type:jsonb"`
+	Metadata          map[string]interface{} `gorm:"-"`
 	LoquelaLanguageID uint
 }
 

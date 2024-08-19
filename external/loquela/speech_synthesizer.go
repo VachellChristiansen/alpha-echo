@@ -125,7 +125,6 @@ func (e *SpeechSynthesizerImpl) Synthesize(specifications string) (err error) {
 	}
 	defer c.Close()
 
-	// For loop csv to prepare mandarin speeches
 	e.onOpen(c, "demo.mp3")
 	for {
 		messageType, message, err := c.ReadMessage()
