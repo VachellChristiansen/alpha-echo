@@ -13,14 +13,14 @@ func MigrateVacuus(db *gorm.DB) {
 }
 
 func SeedVacuus(db *gorm.DB) error {
-	if err := seedAnimation(db); err != nil {
+	if err := seedVacuusAnimation(db); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func seedAnimation(db *gorm.DB) error {
+func seedVacuusAnimation(db *gorm.DB) error {
 	animations := []VacuusAnimation{
 		{
 			Name:     "random-bouncing-circles",
