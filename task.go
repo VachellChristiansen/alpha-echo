@@ -60,5 +60,11 @@ func seedModels(db *gorm.DB, logger Logger) func() {
 			os.Exit(1)
 		}
 		logger["TASK"].Printf("Seeding Vacuus Models Finished!")
+		logger["TASK"].Printf("Seeding Loquela Models Begin...")
+		if err := models.SeedLoquela(db); err != nil {
+			logger["TASK"].Printf("Seeding Loquela Models Failure, Error: %v", err)
+			os.Exit(1)
+		}
+		logger["TASK"].Printf("Seeding Loquela Models Finished!")
 	}
 }
