@@ -3,6 +3,7 @@ package main
 import (
 	external_loquela "alpha-echo/external/loquela"
 	"alpha-echo/handlers"
+	"alpha-echo/models"
 	"flag"
 	"fmt"
 	"io"
@@ -23,7 +24,7 @@ var envFile string
 var prepLanguage string
 
 func init() {
-	flag.StringVar(&runTask, "runTask", "", "Run tasks. Available: MigrateModels, SeedModels, PrepareMandarin")
+	flag.StringVar(&runTask, "runTask", "", "Run tasks. Available: MigrateModels, SeedModels")
 	flag.StringVar(&envFile, "envFile", ".env.dev", "Environment file name")
 	flag.StringVar(&prepLanguage, "prepLanguage", "", "Prepare Language Audios for [Loquela]")
 	flag.Parse()
@@ -102,10 +103,19 @@ func main() {
 	}
 
 	if prepLanguage == "mandarin" {
-		ss := external_loquela.NewSpeechSynthesizer("Mandarin", "Male", 1, db, logger)
-		ss.BuildRequest("在爱的触动下，每个人都成为诗人")
-		ss.BuildUrl()
-		ss.Synthesize("")
+		ss := external_loquela.NewSpeechSynthesizer("Mandarin", "Female", 1, logger)
+		var vocabularies []models.LoquelaVocabulary
+		if err := db.Where("loquela_language_id", 1).Find(&vocabularies).Error; err != nil {
+			logger["ERROR"].Fatalf("Failed fetching vocabularies for %s language.", prepLanguage)
+		}
+		for _, vocabulary := range vocabularies {
+			logger["LOQUELA_PREPARE"].Printf("Synthesizing audio for %s", vocabulary.Word)
+			ss.BuildRequest(vocabulary.Word)
+			ss.BuildUrl()
+			ss.BuildFile(&vocabulary)
+			ss.Synthesize("")
+		}
+		logger["LOQUELA_PREPARE"].Printf("Done Synthesizing for %s language", prepLanguage)
 		return
 	}
 

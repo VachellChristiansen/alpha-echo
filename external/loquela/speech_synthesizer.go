@@ -1,6 +1,7 @@
 package external_loquela
 
 import (
+	"alpha-echo/models"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
@@ -12,30 +13,30 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"gorm.io/gorm"
 )
 
 const (
 	STATUS_FIRST_FRAME    = 0
 	STATUS_CONTINUE_FRAME = 1
 	STATUS_LAST_FRAME     = 2
-	FILEPATH              = "asset/loquela"
 )
 
 type SpeechSynthesizer interface {
 	GetProperty(prop string) interface{}
 	BuildRequest(text string)
+	BuildFile(vocabulary *models.LoquelaVocabulary)
 	BuildUrl()
 	Synthesize(specifications string) (err error)
 }
 
 type SpeechSynthesizerImpl struct {
-	Language string
-	Gender   string
-	Audio    int
-	Request  *WebsocketRequest
-	URL      string
-	logger   map[string]*log.Logger
+	Language   string
+	Gender     string
+	Audio      int
+	Vocabulary *models.LoquelaVocabulary
+	Request    *WebsocketRequest
+	URL        string
+	logger     map[string]*log.Logger
 }
 
 type WebsocketRequest struct {
@@ -48,7 +49,7 @@ type WebsocketRequest struct {
 	Data         map[string]interface{}
 }
 
-func NewSpeechSynthesizer(language, gender string, audio int, db *gorm.DB, logger map[string]*log.Logger) SpeechSynthesizer {
+func NewSpeechSynthesizer(language, gender string, audio int, logger map[string]*log.Logger) SpeechSynthesizer {
 	return &SpeechSynthesizerImpl{
 		Language: language,
 		Gender:   gender,
@@ -81,7 +82,7 @@ func (e *SpeechSynthesizerImpl) BuildRequest(text string) {
 		BusinessArgs: map[string]interface{}{
 			"aue": "lame",
 			"auf": "audio/L16;rate=16000",
-			"vcn": "x_yifeng",
+			"vcn": "x_xiaolin",
 			"tte": "utf8",
 			"sfl": 1,
 		},
@@ -116,6 +117,10 @@ func (e *SpeechSynthesizerImpl) BuildUrl() {
 	e.URL = os.Getenv("XFYUN_TTS_BASE_URL") + "?" + v.Encode()
 }
 
+func (e *SpeechSynthesizerImpl) BuildFile(vocabulary *models.LoquelaVocabulary) {
+	e.Vocabulary = vocabulary
+}
+
 func (e *SpeechSynthesizerImpl) Synthesize(specifications string) (err error) {
 	c, _, err := websocket.DefaultDialer.Dial(e.URL, nil)
 	if err != nil {
@@ -123,20 +128,20 @@ func (e *SpeechSynthesizerImpl) Synthesize(specifications string) (err error) {
 	}
 	defer c.Close()
 
-	e.onOpen(c, "demo.mp3")
+	e.onOpen(c)
 	for {
 		messageType, message, err := c.ReadMessage()
 		if err != nil {
 			e.onError(err)
 			break
 		}
-		e.onMessage(c, messageType, message, "demo.mp3")	
+		e.onMessage(c, messageType, message)
 	}
 	e.onClose(0, "")
 	return
 }
 
-func (e *SpeechSynthesizerImpl) onMessage(ws *websocket.Conn, messageType int, message []byte, filename string) {
+func (e *SpeechSynthesizerImpl) onMessage(ws *websocket.Conn, messageType int, message []byte) {
 	if messageType != websocket.TextMessage {
 		e.logger["EXTERNAL"].Printf("[ERROR][LOQUELA] Received non-text message: %d", messageType)
 		return
@@ -168,7 +173,7 @@ func (e *SpeechSynthesizerImpl) onMessage(ws *websocket.Conn, messageType int, m
 		errMsg := response["message"].(string)
 		e.logger["EXTERNAL"].Printf("[ERROR][LOQUELA] Error Response from websocket, sid:%s call error:%s code is:%d", sid, errMsg, code)
 	} else {
-		file, err := os.OpenFile(FILEPATH+"/Mandarin/"+filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		file, err := os.OpenFile(e.Vocabulary.AudioPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			e.logger["EXTERNAL"].Printf("[ERROR][LOQUELA] Error opening file, %v", err)
 			return
@@ -186,7 +191,7 @@ func (e *SpeechSynthesizerImpl) onClose(code int, text string) {
 	e.logger["EXTERNAL"].Printf("[INFO][LOQUELA] Closed Websocket, Text: %s, Code: %d", text, code)
 }
 
-func (e *SpeechSynthesizerImpl) onOpen(ws *websocket.Conn, filename string) {
+func (e *SpeechSynthesizerImpl) onOpen(ws *websocket.Conn) {
 	d := map[string]interface{}{
 		"common":   e.Request.CommonArgs,
 		"business": e.Request.BusinessArgs,
@@ -196,7 +201,7 @@ func (e *SpeechSynthesizerImpl) onOpen(ws *websocket.Conn, filename string) {
 	e.logger["EXTERNAL"].Printf("[INFO][LOQUELA] Start sending data with websocket")
 	ws.WriteMessage(websocket.TextMessage, dJson)
 
-	if _, err := os.Stat(FILEPATH + "/Mandarin/" + filename); err == nil {
-		os.Remove(FILEPATH + "/Mandarin/" + filename)
+	if _, err := os.Stat(e.Vocabulary.AudioPath); err == nil {
+		os.Remove(e.Vocabulary.AudioPath)
 	}
 }
